@@ -1,244 +1,825 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>星河 · 工作台原型 (v0.5)</title>
+<title>星河 · 工作台</title>
+<script>
+  (function () {
+    var saved = localStorage.getItem("xinghe-theme");
+    var theme = saved || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+    document.documentElement.setAttribute("data-theme", theme);
+  })();
+</script>
 <style>
-  :root{
-    --bg:#f7f7f8; --panel:#fff; --line:#e7e7ea; --line2:#f0f0f2;
-    --text:#1f2329; --sub:#6b7280; --mute:#9ca3af;
-    --brand:#4f46e5; --brand-soft:#eef0ff;
-    --ok:#16a34a; --ok-soft:#e8f7ee; --warn:#d97706; --warn-soft:#fdf3e2;
-    --err:#dc2626; --err-soft:#fdecec; --run:#2563eb; --run-soft:#e8f0fe;
-    --c-opus:#d97757; --c-sonnet:#b45309; --c-codex:#0f9d76; --c-codex-a:#0d7a5f; --c-oc:#3b6cf6; --c-me:#374151;
-    --radius:10px;
+  /* ================= Theme Tokens ================= */
+  :root {
+    --font-ui: "Segoe UI", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    --font-mono: "JetBrains Mono", "Cascadia Code", Consolas, "SFMono-Regular", monospace;
+    --r-xs: 3px;
+    --r-sm: 4px;
+    --r-md: 6px;
+    --r-lg: 8px;
   }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%}
-  body{font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;color:var(--text);background:var(--bg);display:flex;flex-direction:column}
-  button,select{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
-  code,.mono{font-family:"JetBrains Mono",Consolas,"SFMono-Regular",monospace}
 
-  /* ---------- top bar ---------- */
-  .topbar{height:52px;flex:none;display:flex;align-items:center;gap:12px;padding:0 16px;background:var(--panel);border-bottom:1px solid var(--line);position:relative;z-index:20}
-  .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px}
-  .logo i{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#4f46e5,#7c3aed);display:grid;place-items:center;color:#fff;font-style:normal;font-size:13px}
-  .crumb{color:var(--mute)}
-  .crumb b{color:var(--text);font-weight:600}
-  .pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:500;white-space:nowrap}
-  .pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.warn{background:var(--warn-soft);color:var(--warn)}
-  .pill.run{background:var(--run-soft);color:var(--run)} .pill.err{background:var(--err-soft);color:var(--err)}
-  .pill.gray{background:#f1f2f4;color:var(--sub)} .pill.brand{background:var(--brand-soft);color:var(--brand)}
-  .spacer{flex:1}
-  .asst-badge{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px;border-radius:8px;border:1px solid #d7ece5;background:#f1fbf7;color:#0b6850;font-size:12px;font-weight:500}
-  .asst-badge:hover{background:#e5f7f0}
-  .asst-badge .lvl{background:#0f9d76;color:#fff;padding:1px 6px;border-radius:999px;font-size:10.5px}
-  .search{width:210px;height:32px;border:1px solid var(--line);border-radius:8px;padding:0 10px;display:flex;align-items:center;gap:6px;color:var(--mute);background:#fafafb}
-  .btn{height:32px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:#fff;display:inline-flex;align-items:center;gap:6px;font-weight:500}
-  .btn:hover{background:#f6f6f8}
-  .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
-  .btn.primary:hover{background:#4338ca}
-  .btn.danger{border-color:#f5c2c2;color:var(--err);background:#fff}
-  .btn.danger:hover{background:var(--err-soft)}
-  .btn.sm{height:26px;padding:0 10px;font-size:12px;border-radius:6px}
-  .avatar{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:600;font-size:12px;flex:none}
+  /* Dark Mode — VS Code "One Dark Pro Darker" (surface-first, minimal hairlines) */
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg-editor: #23272e;
+    --bg-sidebar: #1e2227;
+    --bg-input: #1d1f23;
+    --bg-surface: #282c34;
+    --bg-elevated: #2c313c;
+    --bg-hover: #2c313a;
+    --bg-active: #323842;
+    --bg-code: #1b1d23;
 
-  /* assistant popover */
-  .popover{position:fixed;top:56px;right:180px;width:320px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(15,23,42,.12);padding:14px;display:none;z-index:50}
-  .popover.open{display:block}
-  .pop-title{font-weight:700;font-size:13.5px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
-  .pop-sub{color:var(--sub);font-size:11.5px;margin-bottom:10px;line-height:1.5}
-  .pop-lbl{font-size:11.5px;color:var(--sub);font-weight:600;margin:10px 0 6px}
-  .pop-opt{display:flex;align-items:flex-start;gap:8px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;cursor:pointer;text-align:left;width:100%}
-  .pop-opt:hover{background:#fafafb}
-  .pop-opt.on{border-color:var(--brand);background:var(--brand-soft)}
-  .pop-opt b{display:block;font-size:12.5px}
-  .pop-opt small{color:var(--sub);font-size:11px;line-height:1.45;display:block;margin-top:2px}
+    /* Only 2 quiet hairline tokens for structural layout & focus */
+    --sep: #181a1f;
+    --hairline: rgba(255, 255, 255, 0.06);
+    --hairline-strong: rgba(255, 255, 255, 0.11);
+    --focus: #61afef;
 
-  /* ---------- layout ---------- */
-  .main{flex:1;display:grid;grid-template-columns:290px 1fr 340px;min-height:0}
-  .col{min-height:0;overflow:auto;background:var(--panel)}
-  .left{border-right:1px solid var(--line);padding:14px 12px}
-  .right{border-left:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
-  .center{background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
-  .sec-title{display:flex;align-items:center;justify-content:space-between;color:var(--sub);font-size:12px;font-weight:600;margin:4px 4px 8px}
-  .sec-title .act{color:var(--brand);font-weight:500;cursor:pointer;font-size:11.5px}
-  .sec{margin-bottom:18px}
+    --text-bright: #e6e9ef;
+    --text: #d7dae0;
+    --text-body: #abb2bf;
+    --text-sub: #8b93a3;
+    --text-muted: #636b78;
+    --text-placeholder: #6b717d;
+    --text-line-num: #495162;
 
-  /* members */
-  .member{display:flex;gap:10px;padding:9px 8px;border-radius:9px;cursor:pointer;border:1px solid transparent;position:relative}
-  .member:hover{background:#f7f7f9}
-  .member.active{background:var(--brand-soft);border-color:#dcdfff}
-  .member .avatar{width:32px;height:32px;border-radius:9px;font-size:12px}
-  .member .dot{position:absolute;left:34px;top:32px;width:10px;height:10px;border-radius:50%;border:2px solid #fff}
-  .m-body{flex:1;min-width:0}
-  .m-name{display:flex;align-items:center;gap:5px;font-weight:600;flex-wrap:wrap}
-  .m-meta{color:var(--mute);font-size:11px;margin-top:2px}
-  .m-act{color:var(--sub);font-size:11.5px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
-  .tag{font-size:10.5px;padding:1px 6px;border-radius:4px;background:#f2f3f5;color:var(--sub)}
-  .role{font-size:10.5px;padding:1px 6px;border-radius:4px;font-weight:500}
-  .legend{display:flex;gap:12px;color:var(--mute);font-size:11px;margin:8px 6px 0}
-  .legend span::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;background:var(--c)}
+    --btn-bg: #2e333d;
+    --btn-hover: #3a404d;
+    --btn-fg: #d7dae0;
 
-  /* quota */
-  .quota{padding:9px 10px;border:1px solid var(--line2);border-radius:9px;margin-bottom:8px;background:#fcfcfd}
-  .q-head{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:12.5px}
-  .q-head small{font-weight:400;color:var(--mute);font-size:11px}
-  .bar{height:6px;border-radius:3px;background:#eef0f3;margin:7px 0 5px;overflow:hidden}
-  .bar i{display:block;height:100%;border-radius:3px}
-  .q-foot{display:flex;justify-content:space-between;align-items:center;color:var(--mute);font-size:11px}
-  .q-cal{color:var(--brand);font-size:11px;margin-left:6px}
-  .q-cal:hover{text-decoration:underline}
+    --primary: #4d78cc;
+    --primary-hover: #5b87dc;
+    --primary-fg: #f8fafd;
+    --accent: #61afef;
+    --accent-soft: rgba(97, 175, 239, 0.13);
 
-  /* subtasks in left */
-  .st{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;cursor:pointer}
-  .st:hover{background:#f7f7f9}
-  .st-ico{width:16px;height:16px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:10px;color:#fff}
-  .st-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .st-who{font-size:11px;font-weight:500}
+    --ok: #98c379;
+    --ok-soft: rgba(152, 195, 121, 0.13);
+    --warn: #d19a66;
+    --warn-soft: rgba(209, 154, 102, 0.14);
+    --err: #e06c75;
+    --err-soft: rgba(224, 108, 117, 0.14);
+    --run: #61afef;
+    --run-soft: rgba(97, 175, 239, 0.14);
+    --neutral-soft: rgba(171, 178, 191, 0.1);
+    --tag-bg: rgba(255, 255, 255, 0.045);
 
-  /* ---------- center ---------- */
-  .c-head{flex:none;display:flex;align-items:center;gap:12px;padding:11px 20px;background:var(--panel);border-bottom:1px solid var(--line)}
-  .c-title{font-size:15px;font-weight:700}
-  .c-meta{color:var(--mute);font-size:11.5px;margin-top:2px}
-  .tabs{display:flex;background:#f1f2f4;border-radius:8px;padding:2px}
-  .tabs button{padding:5px 12px;border-radius:6px;color:var(--sub);font-size:12.5px}
-  .tabs button.on{background:#fff;color:var(--text);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+    --diff-add-bg: rgba(16, 152, 104, 0.18);
+    --diff-add-fg: #98c379;
+    --diff-del-bg: rgba(154, 53, 61, 0.28);
+    --diff-del-fg: #e06c75;
 
-  .star-bar{flex:none;display:flex;align-items:center;gap:8px;padding:7px 20px;background:#fafafb;border-bottom:1px solid var(--line2);font-size:11.5px;color:var(--sub);flex-wrap:wrap}
-  .star-bar .fchip{padding:2px 8px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--sub);font-size:11.5px}
-  .star-bar .fchip.on{background:var(--text);border-color:var(--text);color:#fff}
-  .star-rule{margin-left:auto;color:#0b6850;background:#eef9f4;border:1px solid #d5eee3;padding:2px 8px;border-radius:999px;font-size:11px}
+    --syn-kw: #c678dd;
+    --syn-fn: #61afef;
+    --syn-str: #98c379;
+    --syn-type: #e5c07b;
 
-  .view{flex:1;overflow:auto;display:none}
-  .view.on{display:block}
+    --bubble-me-bg: #2c313c;
 
-  /* feed */
-  .feed{max-width:880px;margin:0 auto;padding:16px 24px 28px}
-  .daysep{text-align:center;margin:4px 0 14px}
-  .daysep span{background:#eceef1;color:var(--sub);font-size:11px;padding:2px 10px;border-radius:999px}
-  .msg{display:flex;gap:10px;margin-bottom:14px}
-  .msg.hidden{display:none}
-  .msg .avatar{width:30px;height:30px;border-radius:8px;font-size:11.5px}
-  .msg-body{flex:1;min-width:0}
-  .msg-head{display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap}
-  .msg-head b{font-weight:600}
-  .msg-head .route{color:var(--mute);font-size:11.5px}
-  .msg-head time{color:var(--mute);font-size:11px;margin-left:auto}
-  .bubble{background:#fff;border:1px solid var(--line);border-radius:4px var(--radius) var(--radius) var(--radius);padding:10px 12px;line-height:1.65}
-  .msg.me .bubble{background:#f4f5ff;border-color:#e3e6ff}
-  .msg.asst .bubble{background:#f7fcfa;border-color:#d5eee3}
-  .mention{color:var(--brand);font-weight:600}
+    --avatar-bg: #323842;
+    --avatar-fg: #d7dae0;
+    --avatar-me-bg: #4d78cc;
+    --avatar-me-fg: #f8fafd;
+    --ico-bg: rgba(171, 178, 191, 0.09);
+    --ico-fg: #8b93a3;
+    --dot-fg: #181a1f;
 
-  .plan{margin-top:8px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
-  .plan table{width:100%;border-collapse:collapse;font-size:12px}
-  .plan th{background:#fafafb;color:var(--sub);font-weight:500;text-align:left;padding:7px 9px;border-bottom:1px solid var(--line)}
-  .plan td{padding:7px 9px;border-bottom:1px solid var(--line2);vertical-align:top}
-  .plan tr:last-child td{border-bottom:none}
-  .plan .why{color:var(--sub);font-size:11.5px}
-  .plan-foot{display:flex;gap:8px;align-items:center;padding:8px 10px;background:#fafafb;border-top:1px solid var(--line)}
-  .plan-foot .hint{flex:1;color:var(--mute);font-size:11.5px}
+    --link-stroke: rgba(171, 178, 191, 0.24);
+    --scroll-thumb: rgba(78, 86, 102, 0.42);
+    --scroll-hover: rgba(90, 99, 117, 0.65);
+    --shadow-pop: 0 10px 28px rgba(0, 0, 0, 0.52);
+    --toast-bg: #323842;
+    --toast-fg: #f0f0f0;
+  }
 
-  .decision-card{margin-top:10px;padding:10px 12px;border:1px solid #d5d9ff;border-radius:9px;background:#f7f8ff;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  .decision-card .d-txt{flex:1;min-width:220px;font-size:12px;line-height:1.55;color:var(--text)}
+  /* Light Mode — matching One Light / VS Code Light (surface-first) */
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg-editor: #ffffff;
+    --bg-sidebar: #f3f4f6;
+    --bg-input: #f5f6f8;
+    --bg-surface: #f5f6f9;
+    --bg-elevated: #eceef3;
+    --bg-hover: #e7e9ee;
+    --bg-active: #dde2ec;
+    --bg-code: #f5f6f8;
 
-  .event{display:flex;align-items:center;gap:10px;margin:0 0 14px 40px;padding:8px 12px;border-radius:8px;background:#fff;border:1px dashed #d9dce3;color:var(--sub);font-size:12px}
-  .event.hidden{display:none}
-  .event .e-ico{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:12px;flex:none}
-  .event b{color:var(--text);font-weight:600}
-  .event .ref{margin-left:auto;font-size:11px;color:var(--mute)}
-  .event .ref code{background:#f3f4f6;padding:1px 5px;border-radius:4px;color:var(--sub)}
+    --sep: #e4e6eb;
+    --hairline: rgba(0, 0, 0, 0.06);
+    --hairline-strong: rgba(0, 0, 0, 0.12);
+    --focus: #4078f2;
 
-  .file-chip{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:5px 10px;border:1px solid var(--line);border-radius:7px;background:#fafafb;font-size:12px;cursor:pointer}
-  .file-chip:hover{border-color:#c7cbe0}
-  .diff{margin-top:8px;border:1px solid var(--line);border-radius:7px;overflow:hidden;font-size:12px}
-  .diff-head{display:flex;justify-content:space-between;padding:5px 10px;background:#fafafb;border-bottom:1px solid var(--line);color:var(--sub)}
-  .diff pre{margin:0;padding:6px 0;line-height:1.55}
-  .diff .l{display:block;padding:0 10px}
-  .diff .del{background:#fdecec;color:#b42318}
-  .diff .add{background:#e8f7ee;color:#166534}
-  .stats{display:flex;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap}
+    --text-bright: #111418;
+    --text: #1f2328;
+    --text-body: #383a42;
+    --text-sub: #606773;
+    --text-muted: #8b929e;
+    --text-placeholder: #9aa1ad;
+    --text-line-num: #a0a7b4;
 
-  .composer{flex:none;background:var(--panel);border-top:1px solid var(--line);padding:9px 20px 11px}
-  .composer-box{max-width:880px;margin:0 auto;border:1px solid var(--line);border-radius:10px;background:#fff}
-  .cmd-row{display:flex;align-items:center;gap:5px;padding:7px 10px 6px;border-bottom:1px solid var(--line2);flex-wrap:wrap}
-  .cmd-row .lbl{color:var(--mute);font-size:11.5px;margin-right:2px}
-  .cmd-pill{padding:2px 8px;border-radius:6px;font-size:11.5px;color:var(--sub);border:1px solid transparent}
-  .cmd-pill:hover{background:#f3f4f6}
-  .cmd-pill.on{background:var(--brand-soft);border-color:#c7cdfc;color:var(--brand);font-weight:600}
-  .composer textarea{width:100%;border:none;outline:none;resize:none;padding:9px 12px;font:inherit;height:48px;background:transparent}
-  .composer-bar{display:flex;align-items:center;gap:6px;padding:6px 8px;border-top:1px solid var(--line2);flex-wrap:wrap}
-  .composer-bar .lbl{color:var(--mute);font-size:12px;margin-right:2px}
-  .chip{padding:3px 9px;border-radius:999px;border:1px solid var(--line);font-size:11.5px;color:var(--sub);background:#fff}
-  .chip.on{background:var(--text);border-color:var(--text);color:#fff}
-  .composer-tip{max-width:880px;margin:5px auto 0;color:var(--mute);font-size:11px}
+    --btn-bg: #e7e9ee;
+    --btn-hover: #dcdfe7;
+    --btn-fg: #24292f;
 
-  /* board (division of labor) */
-  .board{padding:18px 24px 30px}
-  .board-intro{display:flex;align-items:center;gap:10px;margin-bottom:14px;color:var(--sub);flex-wrap:wrap}
-  .lanes{display:grid;grid-template-columns:repeat(4,minmax(195px,1fr));gap:26px;position:relative}
-  .lane-title{font-size:12px;color:var(--mute);font-weight:600;margin-bottom:8px}
-  .card{position:relative;background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-bottom:14px;cursor:pointer;transition:box-shadow .15s,border-color .15s}
-  .card:hover{box-shadow:0 4px 14px rgba(20,20,40,.07)}
-  .card.dim{opacity:.35}
-  .card.hl{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
-  .card .cid{color:var(--mute);font-size:11px}
-  .card h4{font-size:13.5px;margin:2px 0 8px}
-  .card .owner{display:flex;align-items:center;gap:6px;font-size:12px}
-  .card .owner .avatar{width:20px;height:20px;border-radius:6px;font-size:10px}
-  .card .states{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
-  .card .scope{margin-top:7px;font-size:11px;color:var(--sub);background:#f8f9fb;border:1px solid var(--line2);border-radius:6px;padding:4px 7px}
-  .card .why{margin-top:7px;padding-top:7px;border-top:1px dashed var(--line);color:var(--sub);font-size:11.5px;line-height:1.5}
-  .card .deps{margin-top:6px;color:var(--mute);font-size:11px}
-  svg.links{position:absolute;inset:0;pointer-events:none;overflow:visible}
-  .state-note{margin-top:16px;padding:10px 12px;border-radius:8px;background:#fff;border:1px solid var(--line);color:var(--sub);font-size:12px;line-height:1.7}
+    --primary: #3b6fd8;
+    --primary-hover: #2f60c4;
+    --primary-fg: #ffffff;
+    --accent: #4078f2;
+    --accent-soft: rgba(64, 120, 242, 0.1);
 
-  /* doc view */
-  .doc{max-width:860px;margin:0 auto;padding:18px 24px 30px}
-  .doc-bar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-  .doc-paper{background:#fff;border:1px solid var(--line);border-radius:10px;padding:22px 28px;line-height:1.75}
-  .front{background:#fafafb;border:1px solid var(--line2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--sub);margin-bottom:16px;line-height:1.7}
-  .front b{color:var(--text);font-weight:500}
-  .doc-paper h1{font-size:19px;margin-bottom:10px}
-  .doc-paper h2{font-size:14.5px;margin:18px 0 6px;padding-top:12px;border-top:1px solid var(--line2)}
-  .doc-paper ul{padding-left:18px}
-  .protected{font-size:10.5px;color:var(--warn);margin-left:4px;font-weight:400}
+    --ok: #38863a;
+    --ok-soft: rgba(80, 161, 79, 0.12);
+    --warn: #ad7000;
+    --warn-soft: rgba(193, 132, 1, 0.12);
+    --err: #cf3a30;
+    --err-soft: rgba(228, 86, 73, 0.11);
+    --run: #2f6fd6;
+    --run-soft: rgba(64, 120, 242, 0.11);
+    --neutral-soft: rgba(92, 99, 112, 0.09);
+    --tag-bg: rgba(0, 0, 0, 0.045);
 
-  /* ---------- right ---------- */
-  .r-head{flex:none;padding:12px 14px 8px;border-bottom:1px solid var(--line)}
-  .r-head .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-  .r-head .row b{font-size:13.5px}
-  .r-head .row small{color:var(--mute)}
-  .ftabs{display:flex;gap:4px}
-  .ftabs button{padding:3px 9px;border-radius:6px;color:var(--sub);font-size:12px}
-  .ftabs button.on{background:#f1f2f4;color:var(--text);font-weight:600}
-  .alist{flex:none;max-height:44%;overflow:auto;padding:8px}
-  .aitem{display:flex;gap:10px;align-items:center;padding:8px;border-radius:8px;cursor:pointer;border:1px solid transparent}
-  .aitem:hover{background:#f7f7f9}
-  .aitem.on{background:var(--brand-soft);border-color:#dcdfff}
-  .aico{width:30px;height:30px;border-radius:7px;display:grid;place-items:center;font-size:11px;font-weight:700;flex:none}
-  .a-body{flex:1;min-width:0}
-  .a-name{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .a-meta{color:var(--mute);font-size:11px;margin-top:2px}
-  .preview{flex:1;display:flex;flex-direction:column;border-top:1px solid var(--line);min-height:0}
-  .p-head{flex:none;display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--line2)}
-  .p-head b{font-size:12.5px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .p-ref{flex:none;padding:6px 14px;font-size:11px;color:var(--mute);background:#fafafb;border-bottom:1px solid var(--line2)}
-  .p-ref code{color:var(--sub)}
-  .p-body{flex:1;overflow:auto}
-  .code{font-size:12px;line-height:1.7;padding:8px 0}
-  .code .ln{display:flex}
-  .code .ln span:first-child{width:36px;text-align:right;padding-right:12px;color:#c0c4cc;flex:none;user-select:none}
-  .code .ln span:last-child{white-space:pre;color:#334155}
-  .kw{color:#7c3aed}.fn{color:#2563eb}.str{color:#16a34a}
-  .md{padding:12px 16px;line-height:1.7;font-size:12.5px}
-  .md h3{font-size:13.5px;margin:8px 0 4px}
-  .md ul{padding-left:18px}
+    --diff-add-bg: rgba(80, 161, 79, 0.13);
+    --diff-add-fg: #266b28;
+    --diff-del-bg: rgba(228, 86, 73, 0.13);
+    --diff-del-fg: #b82b23;
 
-  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#1f2329;color:#fff;padding:8px 14px;border-radius:8px;font-size:12.5px;opacity:0;transition:.25s;pointer-events:none;z-index:60}
-  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    --syn-kw: #a626a4;
+    --syn-fn: #4078f2;
+    --syn-str: #50a14f;
+    --syn-type: #c18401;
+
+    --bubble-me-bg: #eef2fb;
+
+    --avatar-bg: #e2e5ec;
+    --avatar-fg: #24292f;
+    --avatar-me-bg: #3b6fd8;
+    --avatar-me-fg: #ffffff;
+    --ico-bg: rgba(92, 99, 112, 0.09);
+    --ico-fg: #606773;
+    --dot-fg: #ffffff;
+
+    --link-stroke: rgba(92, 99, 112, 0.26);
+    --scroll-thumb: rgba(139, 146, 158, 0.34);
+    --scroll-hover: rgba(139, 146, 158, 0.54);
+    --shadow-pop: 0 10px 28px rgba(15, 23, 42, 0.13);
+    --toast-bg: #23272e;
+    --toast-fg: #f0f0f0;
+  }
+
+  /* ================= Reset & Base ================= */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font-ui);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.55;
+    color: var(--text-body);
+    background: var(--bg-editor);
+    display: flex;
+    flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; border: none; background: none; }
+  code, pre, .mono { font-family: var(--font-mono); }
+
+  ::-webkit-scrollbar { width: 7px; height: 7px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--scroll-thumb); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+
+  /* ================= Topbar ================= */
+  .topbar {
+    height: 42px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px;
+    background: var(--bg-sidebar);
+    border-bottom: 1px solid var(--sep);
+    z-index: 20;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-bright);
+    margin-right: 4px;
+  }
+  .logo i {
+    width: 20px;
+    height: 20px;
+    border-radius: var(--r-sm);
+    background: var(--primary);
+    color: var(--primary-fg);
+    display: grid;
+    place-items: center;
+    font-style: normal;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .crumb { color: var(--text-sub); font-size: 12.5px; }
+  .crumb b { color: var(--text); font-weight: 600; }
+  .spacer { flex: 1; }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 6px;
+    border-radius: var(--r-xs);
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 18px;
+    white-space: nowrap;
+  }
+  .pill.ok { background: var(--ok-soft); color: var(--ok); }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); }
+  .pill.run { background: var(--run-soft); color: var(--run); }
+  .pill.err { background: var(--err-soft); color: var(--err); }
+  .pill.gray { background: var(--neutral-soft); color: var(--text-sub); }
+  .pill.brand { background: var(--accent-soft); color: var(--accent); }
+
+  .asst-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 26px;
+    padding: 0 9px;
+    border-radius: var(--r-sm);
+    background: var(--bg-surface);
+    color: var(--text);
+    font-size: 12px;
+  }
+  .asst-badge:hover { background: var(--bg-hover); }
+  .asst-badge b { font-weight: 600; }
+  .asst-badge .lvl {
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 0 5px;
+    border-radius: var(--r-xs);
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 16px;
+  }
+
+  .search {
+    width: 190px;
+    height: 26px;
+    border: 1px solid transparent;
+    border-radius: var(--r-sm);
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-input);
+    color: var(--text-placeholder);
+    font-size: 12px;
+    transition: border-color .12s;
+  }
+  .search input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+    font-size: 12px;
+  }
+  .search input::placeholder { color: var(--text-placeholder); }
+  .search:focus-within { border-color: var(--focus); }
+
+  .btn {
+    height: 26px;
+    padding: 0 10px;
+    border-radius: var(--r-sm);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 500;
+    transition: background .12s;
+  }
+  .btn:hover { background: var(--btn-hover); }
+  .btn.primary { background: var(--primary); color: var(--primary-fg); }
+  .btn.primary:hover { background: var(--primary-hover); }
+  .btn.danger { background: var(--err-soft); color: var(--err); }
+  .btn.danger:hover { filter: brightness(1.1); }
+  .btn.ghost { background: transparent; color: var(--text-sub); }
+  .btn.ghost:hover { background: var(--bg-hover); color: var(--text); }
+  .btn.sm { height: 24px; padding: 0 8px; font-size: 11.5px; }
+  .btn.icon { width: 26px; padding: 0; justify-content: center; background: transparent; color: var(--text-sub); }
+  .btn.icon:hover { background: var(--bg-hover); color: var(--text); }
+
+  .avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: var(--r-sm);
+    display: grid;
+    place-items: center;
+    background: var(--avatar-bg);
+    color: var(--avatar-fg);
+    font-weight: 600;
+    font-size: 11px;
+    flex: none;
+  }
+  .avatar.me {
+    background: var(--avatar-me-bg);
+    color: var(--avatar-me-fg);
+  }
+
+  /* ================= Assistant Popover (VS Code Menu Style) ================= */
+  .popover {
+    position: fixed;
+    top: 46px;
+    right: 130px;
+    width: 280px;
+    background: var(--bg-sidebar);
+    border: 1px solid var(--hairline-strong);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-pop);
+    padding: 8px;
+    display: none;
+    z-index: 50;
+  }
+  .popover.open { display: block; }
+  .pop-title {
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 4px 4px;
+  }
+  .pop-lbl {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    padding: 8px 6px 4px;
+  }
+  .pop-opt {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 7px;
+    border-radius: var(--r-sm);
+    margin-bottom: 2px;
+    text-align: left;
+    width: 100%;
+    background: transparent;
+  }
+  .pop-opt:hover { background: var(--bg-hover); }
+  .pop-opt.on { background: var(--bg-active); }
+  .pop-opt b { display: block; font-size: 12px; font-weight: 600; color: var(--text); }
+  .pop-opt small { display: block; font-size: 11px; color: var(--text-sub); }
+
+  /* ================= 3-Column Workbench ================= */
+  .main { flex: 1; display: grid; grid-template-columns: 268px 1fr 330px; min-height: 0; }
+  .col { min-height: 0; overflow: auto; }
+  .left { background: var(--bg-sidebar); border-right: 1px solid var(--sep); padding: 12px 8px; }
+  .right { background: var(--bg-sidebar); border-left: 1px solid var(--sep); display: flex; flex-direction: column; overflow: hidden; }
+  .center { background: var(--bg-editor); display: flex; flex-direction: column; overflow: hidden; }
+
+  .sec { margin-bottom: 18px; }
+  .sec-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 7px;
+    margin-bottom: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .sec-title .act { color: var(--accent); font-weight: 500; text-transform: none; letter-spacing: 0; font-size: 11px; }
+  .sec-title .act:hover { text-decoration: underline; }
+
+  /* Members (compact 3-line VS Code sidebar rows) */
+  .member {
+    display: flex;
+    gap: 9px;
+    padding: 7px 7px;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    position: relative;
+  }
+  .member:hover { background: var(--bg-hover); }
+  .member.active { background: var(--bg-active); }
+  .member.is-offline { opacity: 0.68; }
+  .member .avatar { width: 26px; height: 26px; font-size: 10.5px; margin-top: 1px; }
+  .member .dot {
+    position: absolute;
+    left: 26px;
+    top: 27px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--bg-sidebar);
+  }
+  .member:hover .dot { box-shadow: 0 0 0 2px var(--bg-hover); }
+  .member.active .dot { box-shadow: 0 0 0 2px var(--bg-active); }
+  .m-body { flex: 1; min-width: 0; }
+  .m-top { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .m-name { font-weight: 600; font-size: 12.5px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .role {
+    font-size: 10px;
+    font-weight: 500;
+    padding: 0 5px;
+    line-height: 16px;
+    border-radius: var(--r-xs);
+    background: var(--neutral-soft);
+    color: var(--text-sub);
+    flex: none;
+  }
+  .m-state-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-top: 2px;
+    font-size: 11px;
+  }
+  .m-st-work { color: var(--accent); font-weight: 500; }
+  .m-st-idle { color: var(--text-sub); }
+  .m-st-off { color: var(--text-muted); }
+  .m-time { color: var(--text-muted); font-variant-numeric: tabular-nums; flex: none; }
+  .m-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+    font-size: 11.5px;
+    color: var(--text-sub);
+    min-width: 0;
+  }
+  .m-clip {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .m-stat {
+    flex: none;
+    font-size: 10.5px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Quota Pools (surface-only recessed cards, zero border) */
+  .quota {
+    padding: 8px 9px;
+    border-radius: var(--r-sm);
+    margin: 0 3px 6px;
+    background: var(--bg-editor);
+  }
+  .q-head { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 12px; color: var(--text); }
+  .q-head small { font-weight: 400; color: var(--text-muted); font-size: 11px; }
+  .bar { height: 3px; border-radius: 2px; background: var(--bg-active); margin: 7px 0 6px; overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 2px; }
+  .q-foot { display: flex; justify-content: space-between; align-items: center; color: var(--text-sub); font-size: 11px; }
+  .q-cal { color: var(--accent); font-size: 11px; margin-left: 6px; }
+  .q-cal:hover { text-decoration: underline; }
+
+  /* Subtasks */
+  .st { display: flex; align-items: center; gap: 7px; padding: 5px 7px; border-radius: var(--r-sm); cursor: pointer; }
+  .st:hover { background: var(--bg-hover); }
+  .st-ico { width: 14px; height: 14px; border-radius: 50%; flex: none; display: grid; place-items: center; font-size: 9px; color: var(--dot-fg); font-weight: 700; }
+  .st-name { flex: 1; font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .st-who { font-size: 11px; color: var(--text-muted); }
+
+  /* ================= Center Header & Tabs ================= */
+  .c-head {
+    flex: none;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 20px;
+    background: var(--bg-editor);
+    border-bottom: 1px solid var(--hairline);
+  }
+  .c-title { font-size: 13px; font-weight: 600; color: var(--text-bright); display: flex; align-items: center; gap: 7px; }
+  .c-meta { color: var(--text-muted); font-size: 11.5px; font-weight: 400; }
+  .tabs { display: flex; height: 100%; gap: 4px; }
+  .tabs button {
+    height: 100%;
+    padding: 0 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-sub);
+    border-bottom: 2px solid transparent;
+  }
+  .tabs button:hover { color: var(--text); }
+  .tabs button.on {
+    color: var(--text-bright);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+  }
+
+  .filter-bar {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 20px 2px;
+    background: var(--bg-editor);
+    flex-wrap: wrap;
+  }
+  .fchip {
+    padding: 2px 8px;
+    border-radius: var(--r-sm);
+    color: var(--text-sub);
+    font-size: 11.5px;
+  }
+  .fchip:hover { background: var(--bg-hover); color: var(--text); }
+  .fchip.on { background: var(--bg-active); color: var(--text-bright); font-weight: 500; }
+
+  .view { flex: 1; overflow: auto; display: none; }
+  .view.on { display: block; }
+
+  /* ================= Feed (Clean Open Canvas — Matches VS Code Chat) ================= */
+  .feed { max-width: 820px; margin: 0 auto; padding: 14px 20px 28px; }
+  .daysep { text-align: center; margin: 2px 0 16px; color: var(--text-muted); font-size: 11px; }
+
+  .msg { display: flex; gap: 11px; margin-bottom: 18px; }
+  .msg.hidden { display: none; }
+  .msg .avatar { width: 24px; height: 24px; font-size: 10px; margin-top: 2px; }
+  .msg-body { flex: 1; min-width: 0; }
+  .msg-head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .msg-head b { font-weight: 600; font-size: 12.5px; color: var(--text); }
+  .msg-head .route { color: var(--text-muted); font-size: 11.5px; }
+  .msg-head time { color: var(--text-muted); font-size: 11px; margin-left: auto; }
+
+  /* Agent replies flow directly on canvas — zero boxy clutter */
+  .bubble { line-height: 1.65; color: var(--text-body); }
+  /* Admin messages get a quiet surface tint (zero border) */
+  .msg.me .bubble {
+    background: var(--bubble-me-bg);
+    border-radius: var(--r-md);
+    padding: 8px 12px;
+    color: var(--text);
+  }
+  .mention { color: var(--accent); font-weight: 600; }
+  .bubble code {
+    background: var(--bg-elevated);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    font-size: 11.5px;
+    color: var(--text);
+  }
+
+  /* Recessed borderless embedded blocks */
+  .plan { margin-top: 8px; border-radius: var(--r-md); overflow: hidden; background: var(--bg-sidebar); }
+  .plan table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .plan th { color: var(--text-muted); font-weight: 600; font-size: 11px; text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--hairline); }
+  .plan td { padding: 7px 10px; border-bottom: 1px solid var(--hairline); vertical-align: top; color: var(--text-body); }
+  .plan tr:last-child td { border-bottom: none; }
+  .plan .why { color: var(--text-sub); font-size: 11.5px; }
+  .plan-foot { display: flex; gap: 8px; align-items: center; padding: 7px 10px; background: var(--bg-code); }
+  .plan-foot .meta { flex: 1; color: var(--text-muted); font-size: 11.5px; }
+
+  .decision-card {
+    margin-top: 8px;
+    padding: 9px 12px;
+    border-left: 2px solid var(--warn);
+    border-radius: var(--r-sm);
+    background: var(--bg-surface);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .decision-card .d-txt { flex: 1; min-width: 200px; font-size: 12px; color: var(--text); }
+
+  /* Lightweight inline timeline events — zero box */
+  .event {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px 35px;
+    padding: 2px 0;
+    color: var(--text-sub);
+    font-size: 12px;
+  }
+  .event.hidden { display: none; }
+  .event .e-ico { width: 16px; height: 16px; border-radius: var(--r-xs); display: grid; place-items: center; font-size: 10px; flex: none; font-weight: 600; }
+  .event b { color: var(--text); font-weight: 600; }
+  .event .ref { margin-left: auto; font-size: 11px; color: var(--text-muted); }
+  .event .ref code { background: var(--bg-surface); padding: 1px 5px; border-radius: var(--r-xs); color: var(--text-sub); }
+
+  .file-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 7px;
+    padding: 4px 8px;
+    border-radius: var(--r-sm);
+    background: var(--bg-surface);
+    color: var(--text);
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .file-chip:hover { background: var(--bg-active); }
+
+  .diff { margin-top: 8px; border-radius: var(--r-md); overflow: hidden; font-size: 12px; background: var(--bg-code); }
+  .diff-head { display: flex; justify-content: space-between; padding: 5px 10px; background: var(--bg-sidebar); color: var(--text-sub); font-size: 11.5px; }
+  .diff pre { margin: 0; padding: 6px 0; line-height: 1.55; overflow-x: auto; }
+  .diff .l { display: block; padding: 0 10px; }
+  .diff .del { background: var(--diff-del-bg); color: var(--diff-del-fg); }
+  .diff .add { background: var(--diff-add-bg); color: var(--diff-add-fg); }
+  .stats { display: flex; gap: 6px; margin-top: 7px; align-items: center; flex-wrap: wrap; }
+
+  /* ================= Composer (Single Clean Input Box) ================= */
+  .composer {
+    flex: none;
+    background: var(--bg-editor);
+    padding: 6px 20px 14px;
+  }
+  .composer-box {
+    max-width: 820px;
+    margin: 0 auto;
+    border: 1px solid var(--hairline-strong);
+    border-radius: var(--r-lg);
+    background: var(--bg-input);
+    padding: 6px 8px 7px;
+    transition: border-color .12s;
+  }
+  .composer-box:focus-within { border-color: var(--focus); }
+  .cmd-row { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; margin-bottom: 2px; }
+  .cmd-pill {
+    padding: 2px 7px;
+    border-radius: var(--r-xs);
+    font-size: 11.5px;
+    color: var(--text-sub);
+  }
+  .cmd-pill:hover { background: var(--bg-hover); color: var(--text); }
+  .cmd-pill.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+  .composer textarea {
+    width: 100%;
+    border: none;
+    outline: none;
+    resize: none;
+    padding: 6px 4px;
+    height: 44px;
+    background: transparent;
+    color: var(--text);
+  }
+  .composer textarea::placeholder { color: var(--text-placeholder); }
+
+  .composer-bar { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; padding-top: 2px; }
+  .chip {
+    padding: 2px 7px;
+    border-radius: var(--r-sm);
+    font-size: 11.5px;
+    color: var(--text-sub);
+    background: transparent;
+  }
+  .chip:hover { background: var(--bg-hover); color: var(--text); }
+  .chip.on { background: var(--bg-active); color: var(--text-bright); font-weight: 500; }
+
+  /* ================= Board (Surface Cards, Zero Cluttered Borders) ================= */
+  .board { padding: 18px 20px 28px; }
+  .lanes { display: grid; grid-template-columns: repeat(4, minmax(190px, 1fr)); gap: 22px; position: relative; }
+  .lane-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .card {
+    position: relative;
+    background: var(--bg-surface);
+    border-radius: var(--r-md);
+    padding: 11px 12px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: background .12s, box-shadow .12s;
+  }
+  .card:hover { background: var(--bg-elevated); }
+  .card.dim { opacity: .3; }
+  .card.hl { box-shadow: 0 0 0 1.5px var(--focus); }
+  .card .cid { color: var(--text-muted); font-size: 11px; }
+  .card h4 { font-size: 13px; font-weight: 600; color: var(--text-bright); margin: 2px 0 8px; }
+  .card .owner { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text); }
+  .card .owner .avatar { width: 18px; height: 18px; font-size: 9.5px; }
+  .card .owner span { color: var(--text-muted); font-size: 11px; }
+  .card .states { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
+  .card .scope {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--text-sub);
+    background: var(--bg-code);
+    border-radius: var(--r-xs);
+    padding: 4px 7px;
+  }
+  .card .why { margin-top: 8px; color: var(--text-sub); font-size: 11.5px; line-height: 1.45; }
+  svg.links { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+
+  /* ================= Task Document View ================= */
+  .doc { max-width: 800px; margin: 0 auto; padding: 18px 20px 32px; }
+  .doc-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .doc-bar b { color: var(--text-bright); font-weight: 600; }
+  .doc-paper { line-height: 1.7; color: var(--text-body); }
+  .front {
+    background: var(--bg-sidebar);
+    border-radius: var(--r-md);
+    padding: 11px 14px;
+    font-size: 11.5px;
+    color: var(--text-sub);
+    margin-bottom: 18px;
+    line-height: 1.75;
+  }
+  .front b { color: var(--text); font-weight: 600; }
+  .doc-paper h1 { font-size: 17px; font-weight: 600; color: var(--text-bright); margin-bottom: 10px; }
+  .doc-paper h2 { font-size: 13.5px; font-weight: 600; color: var(--text); margin: 18px 0 6px; }
+  .doc-paper ul { padding-left: 18px; }
+  .doc-paper code { background: var(--bg-surface); padding: 1px 5px; border-radius: var(--r-xs); color: var(--text); font-size: 12px; }
+  .lock-tag { font-size: 10px; color: var(--text-muted); margin-left: 4px; }
+
+  /* ================= Right Panel (Artifacts & Preview) ================= */
+  .r-head { flex: none; padding: 12px 12px 6px; }
+  .r-head .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+  .r-head .row b { font-size: 11px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; }
+  .r-head .row small { color: var(--text-muted); font-size: 11px; }
+  .ftabs { display: flex; gap: 3px; }
+  .ftabs button { padding: 2px 8px; border-radius: var(--r-xs); color: var(--text-sub); font-size: 11.5px; }
+  .ftabs button:hover { background: var(--bg-hover); color: var(--text); }
+  .ftabs button.on { background: var(--bg-active); color: var(--text-bright); font-weight: 500; }
+
+  .alist { flex: none; max-height: 42%; overflow: auto; padding: 4px 6px 8px; }
+  .aitem {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 6px 7px;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+  }
+  .aitem:hover { background: var(--bg-hover); }
+  .aitem.on { background: var(--bg-active); }
+  .aico { width: 24px; height: 24px; border-radius: var(--r-xs); display: grid; place-items: center; font-size: 10px; font-weight: 600; flex: none; background: var(--ico-bg); color: var(--ico-fg); }
+  .a-body { flex: 1; min-width: 0; }
+  .a-name { font-weight: 500; font-size: 12.5px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .a-meta { color: var(--text-muted); font-size: 11px; margin-top: 1px; }
+
+  .preview { flex: 1; display: flex; flex-direction: column; border-top: 1px solid var(--sep); min-height: 0; background: var(--bg-code); }
+  .p-head { flex: none; display: flex; align-items: center; gap: 7px; padding: 8px 12px 4px; background: var(--bg-sidebar); }
+  .p-head b { font-size: 12px; font-weight: 600; color: var(--text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .p-ref { flex: none; padding: 0 12px 7px; font-size: 11px; color: var(--text-muted); background: var(--bg-sidebar); }
+  .p-ref code { color: var(--text-sub); }
+  .p-body { flex: 1; overflow: auto; background: var(--bg-code); }
+
+  .code { font-size: 12px; line-height: 1.65; padding: 8px 0; }
+  .code .ln { display: flex; }
+  .code .ln:hover { background: var(--bg-hover); }
+  .code .ln span:first-child { width: 34px; text-align: right; padding-right: 12px; color: var(--text-line-num); flex: none; user-select: none; }
+  .code .ln span:last-child { white-space: pre; color: var(--text-body); }
+  .kw { color: var(--syn-kw); }
+  .fn { color: var(--syn-fn); }
+  .str { color: var(--syn-str); }
+  .ty { color: var(--syn-type); }
+
+  .md { padding: 12px 14px; line-height: 1.65; font-size: 12.5px; color: var(--text-body); background: var(--bg-editor); min-height: 100%; }
+  .md h3 { font-size: 13px; font-weight: 600; color: var(--text-bright); margin: 10px 0 4px; }
+  .md h3:first-child { margin-top: 0; }
+  .md ul { padding-left: 18px; }
+  .md code { background: var(--bg-surface); padding: 1px 4px; border-radius: var(--r-xs); color: var(--text); font-size: 11.5px; }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%) translateY(16px);
+    background: var(--toast-bg);
+    color: var(--toast-fg);
+    padding: 6px 12px;
+    border-radius: var(--r-sm);
+    font-size: 12px;
+    box-shadow: var(--shadow-pop);
+    opacity: 0;
+    transition: .2s;
+    pointer-events: none;
+    z-index: 60;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
@@ -247,25 +828,29 @@
 <header class="topbar">
   <div class="logo"><i>星</i>星河</div>
   <div class="crumb">任务 / <b>登录模块重构</b></div>
-  <span class="pill run">● 评审完成 · 待管理员决策</span>
+  <span class="pill warn">待决策</span>
   <div class="spacer"></div>
-  <button class="asst-badge" id="asstBtn" title="点击切换助理成员或调整权限等级">
-    <span>助理：<b id="asstNameTop">Codex-助理</b></span>
-    <span class="lvl" id="asstLvlTop">L1 辅助起草</span>
-    <span>▾</span>
+  <button class="asst-badge" id="asstBtn">
+    <span>助理</span>
+    <b id="asstNameTop">Codex-助理</b>
+    <span class="lvl" id="asstLvlTop">L1</span>
+    <span style="color:var(--text-muted)">▾</span>
   </button>
-  <div class="search">⌕ <span>搜索任务、文件、成员…</span></div>
-  <button class="btn" onclick="toast('核心脱离 LLM：即使无助理也可通过表单建任务与分派')">＋ 新建任务</button>
-  <div class="avatar" style="background:var(--c-me)" title="管理员（人）">我</div>
+  <div class="search">
+    <span>⌕</span>
+    <input type="text" placeholder="搜索任务、文件、成员…" aria-label="搜索">
+  </div>
+  <button class="btn" onclick="toast('已新建任务草稿')">＋ 新建</button>
+  <button class="btn icon" id="themeBtn" aria-label="切换主题"></button>
+  <div class="avatar me" title="管理员">我</div>
 </header>
 
 <!-- Assistant Switch & Permission Popover -->
 <div class="popover" id="asstPop">
-  <div class="pop-title">管理员助理设置 <button style="color:var(--mute)" id="closePop">✕</button></div>
-  <div class="pop-sub">助理是可灵活替换的普通成员角色，走同一文件与接入协议；核心系统不依赖特定 Agent。</div>
-  <div class="pop-lbl">当前担任助理的成员（可热切换）</div>
+  <div class="pop-title">助理配置 <button class="btn ghost sm" id="closePop">✕</button></div>
+  <div class="pop-lbl">助理成员</div>
   <div id="asstMemberOpts"></div>
-  <div class="pop-lbl">助理权限等级（初版默认 L1）</div>
+  <div class="pop-lbl">权限等级</div>
   <div id="asstLevelOpts"></div>
 </div>
 
@@ -274,22 +859,17 @@
   <!-- ================= LEFT ================= -->
   <aside class="col left">
     <div class="sec">
-      <div class="sec-title">协作成员 · 5 <span class="act" title="首版：1 成员 = 1 harness + 1 固定模型">1:1 固定模型</span></div>
+      <div class="sec-title">成员 · 5</div>
       <div id="memberList"></div>
-      <div class="legend">
-        <span style="--c:var(--run)">运行中</span>
-        <span style="--c:var(--warn)">待处理</span>
-        <span style="--c:#c4c8d0">空闲</span>
-      </div>
     </div>
 
     <div class="sec">
-      <div class="sec-title">共享额度池 <span class="act" onclick="toast('首版：窗口规则 + 调度统计 + 手动校准')">说明</span></div>
+      <div class="sec-title">额度池</div>
       <div id="quotaList"></div>
     </div>
 
     <div class="sec">
-      <div class="sec-title">子任务进度 <span class="act" id="gotoBoard">分工视图 →</span></div>
+      <div class="sec-title">子任务 <button class="act" id="gotoBoard">任务流</button></div>
       <div id="subtaskList"></div>
     </div>
   </aside>
@@ -297,60 +877,59 @@
   <!-- ================= CENTER ================= -->
   <section class="center">
     <div class="c-head">
-      <div>
-        <div class="c-title"># 登录模块重构 <span class="c-meta mono">T-012</span></div>
-        <div class="c-meta">管理员（人）在中心 · 4 个本地 CLI 成员 · 4 个子任务 · 首版靠分工隔离文件范围</div>
+      <div class="c-title">
+        <span># 登录模块重构</span>
+        <span class="c-meta mono">T-012</span>
+        <span class="c-meta">· 4 成员 · 4 子任务</span>
       </div>
       <div class="spacer"></div>
       <div class="tabs" id="tabs">
-        <button data-v="feed" class="on">星型协作流</button>
-        <button data-v="board">分工视图</button>
+        <button data-v="feed" class="on">协作交互</button>
+        <button data-v="board">任务流</button>
         <button data-v="doc">任务文档</button>
       </div>
     </div>
 
-    <div class="star-bar" id="channelFilter">
-      <span>管理员视角：</span>
-      <button class="fchip on" data-ch="all">全组总览</button>
-      <button class="fchip" data-ch="codex_a">与 Codex-助理</button>
-      <button class="fchip" data-ch="opus">与 Claude-Opus</button>
-      <button class="fchip" data-ch="codex_w">与 Codex-实现</button>
-      <button class="fchip" data-ch="sonnet">与 Claude-Sonnet</button>
-      <span class="star-rule">★ 星型硬约束：成员仅可 @管理员，禁止成员互 @ 交接</span>
+    <div class="filter-bar" id="channelFilter">
+      <button class="fchip on" data-ch="all">全部</button>
+      <button class="fchip" data-ch="codex_a">Codex-助理</button>
+      <button class="fchip" data-ch="opus">Claude-Opus</button>
+      <button class="fchip" data-ch="codex_w">Codex-实现</button>
+      <button class="fchip" data-ch="sonnet">Claude-Sonnet</button>
     </div>
 
-    <!-- feed -->
+    <!-- Feed View -->
     <div class="view on" id="v-feed">
       <div class="feed" id="feed">
-        <div class="daysep"><span>今天 14:02</span></div>
+        <div class="daysep">今天 14:02</div>
 
         <div class="msg me" data-ch="codex_a">
-          <div class="avatar" style="background:var(--c-me)">我</div>
+          <div class="avatar me">我</div>
           <div class="msg-body">
-            <div class="msg-head"><b>我</b><span class="pill gray">管理员</span><span class="route">→ @Codex-助理 · 找助理起草</span><time>14:02</time></div>
-            <div class="bubble"><span class="mention">@Codex-助理</span> 登录模块要重构：token 过期后支持单飞刷新，并发请求不能重复刷新。架构让 Claude-Opus 出，实现给 Codex-实现，评审让 Claude-Sonnet 异构把关，注意避开文件冲突。</div>
+            <div class="msg-head"><b>我</b><span class="pill gray">起草</span><span class="route">→ @Codex-助理</span><time>14:02</time></div>
+            <div class="bubble"><span class="mention">@Codex-助理</span> 登录模块重构：token 过期后单飞刷新，并发不重复刷新。方案给 Claude-Opus，实现给 Codex-实现，评审给 Claude-Sonnet。</div>
           </div>
         </div>
 
         <div class="msg asst" data-ch="codex_a">
-          <div class="avatar" style="background:var(--c-codex-a)">CA</div>
+          <div class="avatar">CA</div>
           <div class="msg-body">
-            <div class="msg-head"><b>Codex-助理</b><span class="pill ok">助理 · L1 起草</span><span class="route">→ @我</span><time>14:03</time></div>
+            <div class="msg-head"><b>Codex-助理</b><span class="pill gray">L1 草稿</span><span class="route">→ @我</span><time>14:03</time></div>
             <div class="bubble">
-              已结合能力画像与当前额度池余量起草分工方案与文件范围，<b>L1 权限下须你确认后才正式发布与唤醒成员</b>：
+              分工与文件范围方案：
               <div class="plan">
                 <table>
-                  <thead><tr><th>子任务</th><th>承办成员</th><th>修改范围 (file_scope)</th><th>分派理由</th></tr></thead>
+                  <thead><tr><th>子任务</th><th>承办成员</th><th>file_scope</th><th>分派依据</th></tr></thead>
                   <tbody>
-                    <tr><td>T-012.1 重构方案</td><td><span style="color:var(--c-opus);font-weight:600">Claude-Opus</span></td><td class="mono">仅方案文档</td><td class="why">架构设计强；Claude Max 余量充足</td></tr>
-                    <tr><td>T-012.2 token 刷新</td><td><span style="color:var(--c-codex);font-weight:600">Codex-实现</span></td><td class="mono">auth/session.ts, lock.ts, *.test.ts</td><td class="why">多文件实现稳定；与评审方异构</td></tr>
-                    <tr><td>T-012.3 异构代码评审</td><td><span style="color:var(--c-sonnet);font-weight:600">Claude-Sonnet</span></td><td class="mono">只读 S-002 + 评审报告</td><td class="why">与实现方不同模型，交叉查错更有效</td></tr>
-                    <tr><td>T-012.4 最终验收合并</td><td><b>我（管理员）</b></td><td class="mono">—</td><td class="why">管理员拍板验收</td></tr>
+                    <tr><td>T-012.1 重构方案</td><td><b>Claude-Opus</b></td><td class="mono">docs/方案</td><td class="why">架构设计强 · Claude Max 充足</td></tr>
+                    <tr><td>T-012.2 token 刷新</td><td><b>Codex-实现</b></td><td class="mono">auth/session.ts, lock.ts, *.test.ts</td><td class="why">多文件实现稳 · 与评审异构</td></tr>
+                    <tr><td>T-012.3 代码评审</td><td><b>Claude-Sonnet</b></td><td class="mono">只读 S-002</td><td class="why">异构模型交叉检查</td></tr>
+                    <tr><td>T-012.4 验收合并</td><td><b>我</b></td><td class="mono">—</td><td class="why">最终验收</td></tr>
                   </tbody>
                 </table>
                 <div class="plan-foot">
-                  <span class="hint">已由管理员确认发布 · commit <code>a1f3c9e</code> · 14:05</span>
-                  <button class="btn sm" onclick="switchView('board')">看分工视图</button>
+                  <span class="meta">已发布 · <code>a1f3c9e</code> · 14:05</span>
+                  <button class="btn sm" onclick="switchView('board')">任务流</button>
                 </div>
               </div>
             </div>
@@ -358,101 +937,101 @@
         </div>
 
         <div class="event" data-ch="opus">
-          <div class="e-ico" style="background:var(--brand-soft);color:var(--brand)">⇪</div>
-          <span><b>我</b> 发布任务与任命，向 <b style="color:var(--c-opus)">@Claude-Opus</b> 下发 <b>[分配]</b> 指令（T-012.1）</span>
-          <span class="ref">commit <code>a1f3c9e</code></span>
+          <div class="e-ico" style="background:var(--neutral-soft);color:var(--text-sub)">⇪</div>
+          <span><b>我</b> 分配 T-012.1 → <b>@Claude-Opus</b></span>
+          <span class="ref"><code>a1f3c9e</code></span>
         </div>
 
         <div class="msg" data-ch="opus">
-          <div class="avatar" style="background:var(--c-opus)">CO</div>
+          <div class="avatar">CO</div>
           <div class="msg-body">
-            <div class="msg-head"><b>Claude-Opus</b><span class="pill gray">架构</span><span class="pill ok">交付</span><span class="route">→ @我</span><time>14:18</time></div>
+            <div class="msg-head"><b>Claude-Opus</b><span class="pill gray">交付</span><span class="route">→ @我</span><time>14:18</time></div>
             <div class="bubble">
-              <span class="mention">@管理员</span> T-012.1 已完成交付。核心为会话级单飞锁，改动限定在 `auth/session.ts` 与新增 `auth/lock.ts`，已附回滚方案。
-              <div><span class="file-chip" data-art="plan">📄 重构方案.md <span class="pill ok">正式 v2 · S-001</span></span></div>
+              <span class="mention">@我</span> T-012.1 已交付。采用会话级单飞锁，改动收敛至 <code>auth/session.ts</code> 与新增 <code>auth/lock.ts</code>，附回滚开关。
+              <div><span class="file-chip" data-art="plan">重构方案.md <span class="pill gray">S-001</span></span></div>
             </div>
           </div>
         </div>
 
         <div class="msg asst" data-ch="codex_a">
-          <div class="avatar" style="background:var(--c-codex-a)">CA</div>
+          <div class="avatar">CA</div>
           <div class="msg-body">
-            <div class="msg-head"><b>Codex-助理</b><span class="pill ok">自动预检</span><span class="route">→ @我</span><time>14:19</time></div>
+            <div class="msg-head"><b>Codex-助理</b><span class="pill gray">预检</span><span class="route">→ @我</span><time>14:19</time></div>
             <div class="bubble">
-              已预检 <code>S-001</code>：结构完整、覆盖并发单飞与失败回滚，未越界修改代码。建议验收并将 <code>S-001</code> 转派给 <b>Codex-实现</b> 执行 T-012.2。
+              <code>S-001</code> 完整、无代码越界，覆盖单飞锁与回滚，建议验收并转派 <b>Codex-实现</b>。
             </div>
           </div>
         </div>
 
         <div class="event" data-ch="codex_w">
           <div class="e-ico" style="background:var(--ok-soft);color:var(--ok)">✓</div>
-          <span><b>我</b> 验收 T-012.1 → 向 <b style="color:var(--c-codex)">@Codex-实现</b> 下发 <b>[分配]</b>（固定输入 <code>S-001</code>，不共享其他成员聊天）</span>
-          <span class="ref">submission <code>S-001</code></span>
+          <span><b>我</b> 验收 T-012.1 → 分配 T-012.2 给 <b>@Codex-实现</b></span>
+          <span class="ref">输入 <code>S-001</code></span>
         </div>
 
         <div class="msg" data-ch="codex_w">
-          <div class="avatar" style="background:var(--c-codex)">CW</div>
+          <div class="avatar">CW</div>
           <div class="msg-body">
-            <div class="msg-head"><b>Codex-实现</b><span class="pill gray">实现</span><span class="pill warn">求助/阻塞</span><span class="route">→ @我</span><time>14:35</time></div>
+            <div class="msg-head"><b>Codex-实现</b><span class="pill warn">求助</span><span class="route">→ @我</span><time>14:35</time></div>
             <div class="bubble">
-              <span class="mention">@管理员</span> 核心刷新与会话锁已写完，卡在一个需求细节：<b>refresh token 本身也过期时，是清理该用户所有端会话，还是仅清当前端并跳登录页？</b>请澄清。
+              <span class="mention">@我</span> refresh token 同样过期时，清全部端会话还是仅清当前端并跳转登录？
             </div>
           </div>
         </div>
 
         <div class="msg me" data-ch="codex_w">
-          <div class="avatar" style="background:var(--c-me)">我</div>
+          <div class="avatar me">我</div>
           <div class="msg-body">
-            <div class="msg-head"><b>我</b><span class="pill gray">管理员</span><span class="pill brand">补充</span><span class="route">→ @Codex-实现</span><time>14:37</time></div>
-            <div class="bubble"><span class="mention">@Codex-实现</span> 仅清理当前端会话并跳登录页，不影响其他端。已写入任务文件 rev 5，请继续。</div>
+            <div class="msg-head"><b>我</b><span class="pill gray">补充</span><span class="route">→ @Codex-实现</span><time>14:37</time></div>
+            <div class="bubble"><span class="mention">@Codex-实现</span> 仅清当前端会话并跳登录页（已写入 rev 5）。</div>
           </div>
         </div>
 
         <div class="msg" data-ch="codex_w">
-          <div class="avatar" style="background:var(--c-codex)">CW</div>
+          <div class="avatar">CW</div>
           <div class="msg-body">
-            <div class="msg-head"><b>Codex-实现</b><span class="pill gray">实现</span><span class="pill ok">交付</span><span class="route">→ @我</span><time>14:44</time></div>
+            <div class="msg-head"><b>Codex-实现</b><span class="pill gray">交付</span><span class="route">→ @我</span><time>14:44</time></div>
             <div class="bubble">
-              <span class="mention">@管理员</span> T-012.2 已交付，全部改动均在 <code>file_scope</code> 内，单测 19/19 通过。
+              <span class="mention">@我</span> T-012.2 已交付，改动均在 <code>file_scope</code> 内。
               <div class="diff">
                 <div class="diff-head"><span class="mono">auth/session.ts</span><span>+18 −3</span></div>
 <pre class="mono"><span class="l del">-  if (isExpired(token)) throw new AuthError()</span><span class="l add">+  if (isExpired(token)) {</span><span class="l add">+    await lock.acquire(session.id)</span><span class="l add">+    return await rotateOrLogout(session)</span></pre>
               </div>
               <div class="stats">
-                <span class="pill ok">单测 19/19 通过</span>
-                <span class="file-chip" data-art="session" style="margin-top:0">查看 auth/session.ts (S-002)</span>
+                <span class="pill ok">单测 19/19</span>
+                <span class="file-chip" data-art="delivery" style="margin-top:0">实现与验证报告.md <span class="pill gray">S-002</span></span>
               </div>
             </div>
           </div>
         </div>
 
         <div class="event" data-ch="sonnet">
-          <div class="e-ico" style="background:var(--brand-soft);color:var(--brand)">⇪</div>
-          <span><b>我</b> 确认转派评审 → 向 <b style="color:var(--c-sonnet)">@Claude-Sonnet</b> 下发 <b>[分配]</b>（固定审阅 <code>S-002</code>）</span>
-          <span class="ref">T-012.3</span>
+          <div class="e-ico" style="background:var(--neutral-soft);color:var(--text-sub)">⇪</div>
+          <span><b>我</b> 分配评审 T-012.3 → <b>@Claude-Sonnet</b></span>
+          <span class="ref">审阅 <code>S-002</code></span>
         </div>
 
         <div class="msg" data-ch="sonnet">
-          <div class="avatar" style="background:var(--c-sonnet)">CS</div>
+          <div class="avatar">CS</div>
           <div class="msg-body">
-            <div class="msg-head"><b>Claude-Sonnet</b><span class="pill gray">评审</span><span class="pill ok">交付</span><span class="route">→ @我</span><time>14:49</time></div>
+            <div class="msg-head"><b>Claude-Sonnet</b><span class="pill gray">交付</span><span class="route">→ @我</span><time>14:49</time></div>
             <div class="bubble">
-              <span class="mention">@管理员</span> 已完成对 <code>S-002</code> 的异构评审，发现 <b>1 个必修项</b>：<code>auth/lock.ts</code> 的 <code>acquire</code> 缺少超时保护，异常时可能挂起并发请求；另有 1 条命名建议。详情见评审报告，请管理员决策是否退回实现方返工。
-              <div><span class="file-chip" data-art="review">📄 评审意见 R1.md <span class="pill ok">正式 · S-003</span></span></div>
+              <span class="mention">@我</span> <code>S-002</code> 评审完成：1 个必修项——<code>auth/lock.ts</code> 缺少超时，异常时可能挂起并发请求；1 条命名建议。
+              <div><span class="file-chip" data-art="review">评审意见 R1.md <span class="pill gray">S-003</span></span></div>
             </div>
           </div>
         </div>
 
         <div class="msg asst" data-ch="codex_a" id="pendingDecision">
-          <div class="avatar" style="background:var(--c-codex-a)">CA</div>
+          <div class="avatar">CA</div>
           <div class="msg-body">
-            <div class="msg-head"><b>Codex-助理</b><span class="pill ok">预检与建议 · L1</span><span class="route">→ @我</span><time>14:50</time></div>
+            <div class="msg-head"><b>Codex-助理</b><span class="pill warn">待确认 · L1</span><span class="route">→ @我</span><time>14:50</time></div>
             <div class="bubble">
-              已汇总评审报告 <code>S-003</code>：必修项明确且风险真实。我已起草一份发给 <b>Codex-实现</b> 的退回指令（附 <code>S-003</code> 引用），请由你拍板：
+              已起草 <code>T-012.2</code> 退回单（附 <code>S-003</code>）：
               <div class="decision-card">
-                <div class="d-txt"><b>待管理员决策：</b>退回 <code>T-012.2</code> 给 <b>Codex-实现</b> 修复锁超时（产生新 Run，保留 S-002 与 S-003 历史）？</div>
-                <button class="btn sm danger" id="btnReturn">确认退回 Codex-实现</button>
-                <button class="btn sm primary" id="btnAccept">忽略建议 · 直接验收</button>
+                <div class="d-txt">退回 <b>Codex-实现</b> 修复锁超时</div>
+                <button class="btn sm danger" id="btnReturn">退回返工</button>
+                <button class="btn sm primary" id="btnAccept">直接验收</button>
               </div>
             </div>
           </div>
@@ -460,105 +1039,92 @@
       </div>
     </div>
 
-    <!-- board -->
+    <!-- Board View -->
     <div class="view" id="v-board">
       <div class="board">
-        <div class="board-intro">
-          <span>能力分工视图：谁负责哪一块、为什么派给它、允许改哪些文件（首版靠分工避冲突；所有交接均经管理员中转）。</span>
-          <div class="spacer"></div>
-          <span class="pill gray">点击左侧成员高亮其任务</span>
-        </div>
         <div class="lanes" id="lanes"><svg class="links" id="links"></svg></div>
-        <div class="state-note">
-          每张卡片分别展示：<span class="pill brand">业务</span> 来自 Git 正式任务文档；<span class="pill gray">执行</span> 来自 SQLite 运行表。
-          第二版 <b>PK 模式</b> 将支持多成员各自拉独立分支并提交 PR 对比评审。
-        </div>
       </div>
     </div>
 
-    <!-- doc -->
+    <!-- Task Document View -->
     <div class="view" id="v-doc">
       <div class="doc">
         <div class="doc-bar">
-          <b>tasks/T-012.2/task.md</b>
-          <span class="pill ok">正式 rev 6 · S-002</span>
-          <span class="pill warn">评审待管理员决策</span>
+          <b class="mono">tasks/T-012.2/task.md</b>
+          <span class="pill gray">rev 6 · S-002</span>
+          <span class="pill brand">评审中</span>
           <div class="spacer"></div>
-          <button class="btn sm" onclick="toast('展示 rev 5 → rev 6 差异')">版本对比</button>
-          <button class="btn sm danger" onclick="$('#btnReturn')?.click();switchView('feed')">退回返工</button>
-          <button class="btn sm primary" onclick="$('#btnAccept')?.click();switchView('feed')">验收通过</button>
+          <button class="btn sm" onclick="toast('rev 5 → rev 6')">版本对比</button>
+          <button class="btn sm danger" onclick="handleDecision('return');switchView('feed')">退回返工</button>
+          <button class="btn sm primary" onclick="handleDecision('accept');switchView('feed')">验收通过</button>
         </div>
         <div class="doc-paper">
           <div class="front mono">
             task_id: <b>T-012.2</b> · kind: <b>execute</b> · revision: <b>6</b> · spec_revision: <b>2</b><br>
-            owner: <b style="color:var(--c-codex)">Codex-实现</b> <span class="protected">受保护</span> · assign_reason: <b>多文件实现稳定；与评审方异构</b><br>
-            file_scope: <b>auth/session.ts, auth/lock.ts, auth/session.test.ts</b> <span class="protected">受保护</span><br>
-            business_state: <b>reviewing</b> <span class="protected">受保护</span> · inputs: <b>S-001 (重构方案.md@v2)</b> · acceptance: <b>管理员</b>
+            owner: <b>Codex-实现</b><span class="lock-tag">🔒</span> · assign_reason: <b>多文件实现稳 · 与评审异构</b><br>
+            file_scope: <b>auth/session.ts, auth/lock.ts, auth/session.test.ts</b><span class="lock-tag">🔒</span><br>
+            business_state: <b>reviewing</b><span class="lock-tag">🔒</span> · inputs: <b>S-001</b> · acceptance: <b>admin</b>
           </div>
           <h1>实现 token 刷新</h1>
           <h2>目标与范围</h2>
-          <p>按 S-001 方案实现单飞刷新；仅修改 <code>file_scope</code> 内文件，避免与并行任务冲突。</p>
-          <h2>输入与验收要求</h2>
+          <p>按 S-001 实现单飞刷新，改动收敛在 <code>file_scope</code> 内。</p>
+          <h2>输入与验收标准</h2>
           <ul>
-            <li>固定输入：重构方案.md v2（S-001），现有 auth 模块</li>
-            <li>验收标准：并发请求只触发一次刷新；refresh 过期清理当前端会话并跳登录页；单测全部通过</li>
+            <li>固定输入：重构方案.md v2（S-001）</li>
+            <li>并发仅触发一次刷新；refresh 过期清理当前端会话并跳登录页；单测全过</li>
           </ul>
-          <h2>流程、约束与决策</h2>
+          <h2>决策记录</h2>
           <ul>
-            <li>提交后由管理员转派异构成员（Claude-Sonnet）独立评审，最多修订两轮。</li>
-            <li>14:37 管理员补充澄清：refresh 过期仅清当前端会话，不影响其他端（spec_revision → 2）。</li>
+            <li>14:37 补充（spec_revision → 2）：refresh 过期仅清当前端会话。</li>
           </ul>
           <h2>进度与交付</h2>
           <ul>
             <li>14:24 定位过期处理入口</li>
-            <li>14:35 向管理员求助确认过期清理范围</li>
-            <li>14:44 交付 S-002，单测 19/19 通过</li>
+            <li>14:35 求助确认过期范围</li>
+            <li>14:44 交付 S-002（单测 19/19）</li>
           </ul>
         </div>
       </div>
     </div>
 
-    <!-- composer -->
+    <!-- Composer -->
     <div class="composer">
       <div class="composer-box">
         <div class="cmd-row" id="cmdRow">
-          <span class="lbl">指令类型：</span>
-          <button class="cmd-pill on" data-cmd="draft">找助理起草</button>
+          <button class="cmd-pill on" data-cmd="draft">起草</button>
           <button class="cmd-pill" data-cmd="assign">分配</button>
-          <button class="cmd-pill" data-cmd="inquire_static" title="默认直接读任务文件与 Run 状态，不唤醒 CLI，消耗 0 额度">询问进度(静态·省额度)</button>
-          <button class="cmd-pill" data-cmd="inquire_wake">询问进度(唤醒CLI)</button>
-          <button class="cmd-pill" data-cmd="supplement">补充澄清</button>
-          <button class="cmd-pill" data-cmd="return">退回返工</button>
-          <button class="cmd-pill" data-cmd="cancel">取消/暂停</button>
+          <button class="cmd-pill" data-cmd="inquire">查进度</button>
+          <button class="cmd-pill" data-cmd="supplement">补充</button>
+          <button class="cmd-pill" data-cmd="return">退回</button>
+          <button class="cmd-pill" data-cmd="cancel">取消</button>
         </div>
-        <textarea id="input" placeholder="输入给助理的自然语言需求，或选中具体指令与 @成员 后发送…"></textarea>
+        <textarea id="input" placeholder="输入指令…"></textarea>
         <div class="composer-bar">
-          <span class="lbl">@成员</span>
-          <div id="mentionChips" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+          <div id="mentionChips" style="display:flex;gap:3px;flex-wrap:wrap"></div>
           <div class="spacer"></div>
-          <button class="btn sm" onclick="toast('已附带当前任务最新正式版本引用')">📎 附固定文件</button>
+          <button class="btn sm ghost" onclick="toast('已附带最新正式版本')">📎 引用</button>
           <button class="btn sm primary" id="send">发送</button>
         </div>
       </div>
-      <div class="composer-tip">星型沟通：只有管理员可 @成员；「询问进度(静态)」直接读文件与运行状态，不唤醒 CLI、不耗额度；L1 权限下助理起草内容须你确认后才发布。</div>
     </div>
   </section>
 
   <!-- ================= RIGHT ================= -->
   <aside class="col right">
     <div class="r-head">
-      <div class="row"><b>产物与正式文档</b><small id="artCount"></small></div>
+      <div class="row"><b>产物</b><small id="artCount"></small></div>
       <div class="ftabs" id="ftabs">
         <button class="on" data-f="all">全部</button>
-        <button data-f="doc">文档</button>
-        <button data-f="code">代码</button>
+        <button data-f="plan">方案</button>
+        <button data-f="delivery">交付</button>
         <button data-f="review">评审</button>
+        <button data-f="appt">任命</button>
       </div>
     </div>
     <div class="alist" id="artList"></div>
     <div class="preview">
-      <div class="p-head"><b id="pTitle"></b><span id="pState"></span><button class="btn sm" onclick="toast('下载固定版本快照')">下载</button></div>
-      <div class="p-ref" id="pRef"></div>
+      <div class="p-head"><b id="pTitle"></b><span id="pState"></span><button class="btn sm" onclick="toast('已下载固定快照')">下载</button></div>
+      <div class="p-ref mono" id="pRef"></div>
       <div class="p-body" id="pBody"></div>
     </div>
   </aside>
@@ -569,91 +1135,92 @@
 <script>
 /* ---------------- data ---------------- */
 const members = [
-  {id:"codex_a", name:"Codex-助理",    short:"CA", color:"var(--c-codex-a)", harness:"Codex CLI",   model:"GPT-5",  role:"管理员助理", pool:"ChatGPT Pro", status:"wait", act:"已预检 S-003，待管理员确认", tags:["任务拆解","交付预检"], canBeAssistant:true},
-  {id:"codex_w", name:"Codex-实现",    short:"CW", color:"var(--c-codex)",   harness:"Codex CLI",   model:"GPT-5",  role:"实现",       pool:"ChatGPT Pro", status:"idle", act:"T-012.2 已交付 S-002，待决策", tags:["多文件修改","单测"]},
-  {id:"opus",    name:"Claude-Opus",   short:"CO", color:"var(--c-opus)",    harness:"Claude Code", model:"Opus",   role:"架构",       pool:"Claude Max",  status:"idle", act:"T-012.1 已验收，空闲", tags:["架构设计","长文档"], canBeAssistant:true},
-  {id:"sonnet",  name:"Claude-Sonnet", short:"CS", color:"var(--c-sonnet)",  harness:"Claude Code", model:"Sonnet", role:"评审",       pool:"Claude Max",  status:"idle", act:"T-012.3 已交付评审 R1", tags:["异构评审","边界排错"], canBeAssistant:true},
-  {id:"me",      name:"我",            short:"我", color:"var(--c-me)",      harness:"管理员",      model:"",       role:"最高决策",   pool:"",            status:"wait", act:"待拍板 1 项（退回或验收）", tags:[]},
+  {id:"codex_a", name:"Codex-助理",    label:"Codex.GPT-5",   short:"CA", isMe:false, harness:"Codex CLI",   model:"GPT-5",  role:"助理",   status:"idle",    updatedAt:"14:50", deliverable:"T-012.2 退回单草稿（附 S-003 摘要）", act:"已起草 T-012.2 退回单", canBeAssistant:true},
+  {id:"codex_w", name:"Codex-实现",    label:"Codex.GPT-5",   short:"CW", isMe:false, harness:"Codex CLI",   model:"GPT-5",  role:"实现",   status:"working", updatedAt:"14:51", workSummary:"修复 lock.acquire 超时保护与并发测试", progress:"65%", duration:"04:18", deliverable:"实现与验证报告.md (S-002)", act:"修复 lock.acquire 超时保护（65%）"},
+  {id:"opus",    name:"Claude-Opus",   label:"Claude.Opus",   short:"CO", isMe:false, harness:"Claude Code", model:"Opus",   role:"架构",   status:"offline", updatedAt:"14:18", deliverable:"重构方案.md (S-001)", act:"已完成重构方案.md", canBeAssistant:true},
+  {id:"sonnet",  name:"Claude-Sonnet", label:"Claude.Sonnet", short:"CS", isMe:false, harness:"Claude Code", model:"Sonnet", role:"评审",   status:"idle",    updatedAt:"14:49", deliverable:"评审意见 R1.md (S-003)、风险核对清单.md", act:"已交付评审意见 R1.md", canBeAssistant:true},
+  {id:"me",      name:"我",            label:"我",            short:"我", isMe:true,  harness:"管理员",      model:"",       role:"管理员", status:"idle",    updatedAt:"14:50", deliverable:"", act:"待决策 1"},
 ];
-const statusColor = {run:"var(--run)", wait:"var(--warn)", idle:"#c4c8d0"};
+const statusMeta = {
+  working: { text:"工作中", cls:"m-st-work", dot:"var(--run)" },
+  idle:    { text:"空闲",   cls:"m-st-idle", dot:"var(--ok)" },
+  offline: { text:"离线",   cls:"m-st-off",  dot:"var(--text-muted)" },
+};
 
 const assistantLevels = [
-  {id:"L1", name:"L1 辅助起草（初版默认）", desc:"解析自然语言、起草方案、自动预检与静态查进度；正式分配/退回/验收须人确认。"},
-  {id:"L2", name:"L2 计划内流转（可选）",   desc:"已确认计划内的下游转派与常规询问可自动放行；验收与改范围仍归人。"},
-  {id:"L3", name:"L3 高自主托管（远期）",   desc:"规则内自动推进常规返工与复审，仅异常仲裁与最终验收交给人。"},
+  {id:"L1", name:"L1 辅助起草", desc:"起草、预检、静态查询；正式动作须确认"},
+  {id:"L2", name:"L2 计划流转", desc:"计划内自动转派；验收与改范围须确认"},
+  {id:"L3", name:"L3 高自主",   desc:"规则内闭环；仅异常与最终验收归人"},
 ];
 let currentAssistant = "codex_a";
 let currentLevel = "L1";
 
 const pools = [
-  {id:"chatgpt", name:"ChatGPT Pro", kind:"订阅 · 5h 窗口(估算)", used:44, color:"var(--c-codex)", left:"重置 3h20m", who:"Codex-助理 · Codex-实现"},
-  {id:"claude",  name:"Claude Max",  kind:"订阅 · 5h 窗口(估算)", used:58, color:"var(--c-opus)",  left:"重置 2h13m", who:"Claude-Opus · Claude-Sonnet"},
+  {id:"chatgpt", name:"ChatGPT Pro", kind:"5h 窗口 · 估算", used:44, left:"3h20m", who:"Codex-助理 · 实现"},
+  {id:"claude",  name:"Claude Max",  kind:"5h 窗口 · 估算", used:58, left:"2h13m", who:"Opus · Sonnet"},
 ];
 
 const subtasks = [
-  {id:"T-012.1", name:"重构方案",        owner:"opus",    lane:0, biz:["已验收","ok"],   run:["已退出","gray"], scope:"docs: 重构方案.md", why:"架构设计能力强；Claude Max 余量充足", deps:[]},
-  {id:"T-012.2", name:"实现 token 刷新", owner:"codex_w", lane:1, biz:["评审中","brand"], run:["已退出","gray"], scope:"auth/session.ts, lock.ts, *.test.ts", why:"多文件实现稳定；与评审方异构", deps:["T-012.1"]},
-  {id:"T-012.3", name:"异构代码评审",    owner:"sonnet",  lane:2, biz:["已提交","ok"],   run:["已退出","gray"], scope:"只读 S-002 + 评审报告", why:"与实现方不同模型，交叉检查更有效", deps:["T-012.2"], note:"1 个必修项待管理员拍板"},
-  {id:"T-012.4", name:"最终验收 & 合并", owner:"me",      lane:3, biz:["待决策","warn"],  run:["—","gray"],     scope:"验收冻结版本", why:"管理员掌握最终验收与退回权", deps:["T-012.3"]},
+  {id:"T-012.1", name:"重构方案",        owner:"opus",    lane:0, biz:["已验收","ok"],   run:["已退出","gray"], scope:"docs/方案", why:"架构设计强 · Claude Max 充足", deps:[]},
+  {id:"T-012.2", name:"实现 token 刷新", owner:"codex_w", lane:1, biz:["评审中","brand"], run:["已退出","gray"], scope:"auth/session.ts, lock.ts, *.test.ts", why:"多文件实现稳 · 与评审异构", deps:["T-012.1"]},
+  {id:"T-012.3", name:"异构代码评审",    owner:"sonnet",  lane:2, biz:["已提交","gray"],  run:["已退出","gray"], scope:"只读 S-002", why:"异构模型交叉检查", deps:["T-012.2"], note:"1 项必修"},
+  {id:"T-012.4", name:"验收合并",        owner:"me",      lane:3, biz:["待决策","warn"],  run:["—","gray"],     scope:"冻结版本", why:"管理员最终验收", deps:["T-012.3"]},
 ];
-const laneNames = ["1. 方案","2. 实现","3. 异构评审","4. 管理员验收"];
+const laneNames = ["1 · 方案","2 · 实现","3 · 评审","4 · 验收"];
 
 const arts = [
-  {id:"review", type:"review", name:"评审意见 R1.md", by:"sonnet", time:"14:49", state:["正式 · S-003","ok"], ref:"tasks/T-012.3/reports/R1.md · commit e83a11f · 目标 S-002",
-   md:`<h3>评审意见 R1（异构评审）</h3><p>评审对象：<code>S-002</code>（auth/session.ts, auth/lock.ts）</p><h3>必须修改（1 项）</h3><ul><li><b>1.</b> <code>lock.acquire</code> 缺少超时机制；若 <code>rotateOrLogout</code> 异常挂起，同会话后续请求会永久等待。</li></ul><h3>可选建议（1 项）</h3><ul><li><b>2.</b> 建议给 Map 锁键加模块前缀，避免未来复用冲突。</li></ul><h3>结论</h3><p>提交至管理员，建议退回实现方修复第 1 点后再复审。</p>`},
-  {id:"session", type:"code", name:"auth/session.ts", by:"codex_w", time:"14:44", state:["正式 · S-002","ok"], ref:"submission S-002 · commit c91d04a · sha256 4a1b…8c",
-   code:[
-    ['<span class="kw">import</span> { lock } <span class="kw">from</span> <span class="str">"./lock"</span>'],
-    [''],
-    ['<span class="kw">export async function</span> <span class="fn">refreshSession</span>(session) {'],
-    ['  <span class="kw">const</span> token = session.accessToken'],
-    ['  <span class="kw">if</span> (<span class="fn">isExpired</span>(token)) {'],
-    ['    <span class="kw">await</span> lock.<span class="fn">acquire</span>(session.id)'],
-    ['    <span class="kw">try</span> {'],
-    ['      <span class="kw">return await</span> <span class="fn">rotateOrLogout</span>(session)'],
-    ['    } <span class="kw">finally</span> {'],
-    ['      lock.<span class="fn">release</span>(session.id)'],
-    ['    }'],
-    ['  }'],
-    ['  <span class="kw">return</span> token'],
-    ['}'],
-   ]},
-  {id:"lock", type:"code", name:"auth/lock.ts", by:"codex_w", time:"14:44", state:["正式 · S-002","ok"], ref:"submission S-002 · commit c91d04a · sha256 7c02…1e",
-   code:[
-    ['<span class="kw">const</span> pending = <span class="kw">new</span> Map&lt;string, Promise&lt;void&gt;&gt;()'],
-    [''],
-    ['<span class="kw">export const</span> lock = {'],
-    ['  <span class="kw">async</span> <span class="fn">acquire</span>(key: string) {'],
-    ['    <span class="kw">while</span> (pending.<span class="fn">has</span>(key)) <span class="kw">await</span> pending.<span class="fn">get</span>(key)'],
-    ['    pending.<span class="fn">set</span>(key, <span class="kw">new</span> Promise(r =&gt; ...))'],
-    ['  },'],
-    ['  <span class="fn">release</span>(key: string) { pending.<span class="fn">delete</span>(key) },'],
-    ['}'],
-   ]},
-  {id:"plan", type:"doc", name:"重构方案.md", by:"opus", time:"14:18", state:["已验收 · S-001","ok"], ref:"submission S-001 · commit 7be20d4 · sha256 9f2c…e1",
-   md:`<h3>重构方案：单飞刷新</h3><ul><li>同一会话并发请求共享一次刷新</li><li>会话级锁：<code>auth/lock.ts</code></li><li>refresh 过期：清理当前端会话并跳登录页</li></ul><h3>约定修改范围 (file_scope)</h3><ul><li><code>auth/session.ts</code>、<code>auth/lock.ts</code>、<code>auth/session.test.ts</code></li></ul><h3>风险与回滚</h3><ul><li>锁释放放入 <code>finally</code>；保留旧逻辑特性开关便于回滚</li></ul>`},
-  {id:"appt", type:"doc", name:"任命：A-assistant-codex", by:"me", time:"14:00", state:["生效 · L1","brand"], ref:"appointments/A-assistant-codex.md · commit 5120ab9",
-   md:`<h3>任命：管理员助理</h3><p><b>当前成员：</b>Codex-助理（Codex CLI · GPT-5）</p><p><b>可替换性：</b>更换绑定成员即完成切换，无需修改核心流程。</p><h3>职责</h3><ul><li>解析管理员自然语言，起草任务拆解、分派理由与文件范围</li><li>自动预检成员交付并向管理员汇报摘要</li></ul><h3>权限边界</h3><ul><li>实际权限由服务端等级（当前 L1）强制限制；未获确认不可下发正式分配、退回或验收</li></ul>`},
+  {id:"review", type:"review", name:"评审意见 R1.md", by:"sonnet", time:"14:49", state:["S-003","gray"], ref:"T-012.3/reports/R1.md · e83a11f",
+   md:`<h3>评审意见 R1</h3><p>对象：<code>S-002</code></p><h3>必修（1）</h3><ul><li><code>lock.acquire</code> 缺少超时，异常时可能挂起并发请求</li></ul><h3>建议（1）</h3><ul><li>锁键增加模块前缀</li></ul>`},
+  {id:"delivery", type:"delivery", name:"实现与验证报告.md", by:"codex_w", time:"14:44", state:["S-002","gray"], ref:"T-012.2/reports/delivery.md · c91d04a",
+   md:`<h3>实现说明</h3><ul><li>完成会话级单飞刷新与过期登出逻辑</li><li>改动均在 <code>file_scope</code> 范围内</li></ul><h3>代码仓库引用</h3><ul><li>commit：<code>c91d04a</code></li><li>文件：<code>auth/session.ts</code>、<code>auth/lock.ts</code>、<code>auth/session.test.ts</code></li></ul><h3>验证结果</h3><ul><li>单元测试 19/19 通过（含并发刷新与过期登出用例）</li></ul>`},
+  {id:"plan", type:"plan", name:"重构方案.md", by:"opus", time:"14:18", state:["S-001","gray"], ref:"T-012.1/reports/plan.md · 7be20d4",
+   md:`<h3>单飞刷新方案</h3><ul><li>同会话并发共享单次刷新</li><li>会话锁：<code>auth/lock.ts</code></li><li>refresh 过期：清当前端会话并跳登录</li></ul><h3>file_scope</h3><ul><li><code>auth/session.ts</code>、<code>auth/lock.ts</code>、<code>auth/session.test.ts</code></li></ul>`},
+  {id:"appt_impl", type:"appt", name:"A-implementer.md", by:"me", time:"14:05", state:["rev 1","gray"], ref:"appointments/A-implementer.md · a1f3c9e",
+   md:`<h3>任命：代码实现</h3><p>成员：<b>Codex-实现</b>（Codex CLI · GPT-5）</p><h3>职责</h3><ul><li>依据固定方案实现功能并附验证报告</li></ul><h3>边界</h3><ul><li>严格遵守 <code>file_scope</code>，仅向管理员汇报与交付</li></ul>`},
+  {id:"appt", type:"appt", name:"A-assistant-codex.md", by:"me", time:"14:00", state:["L1","gray"], ref:"appointments/A-assistant-codex.md · 5120ab9",
+   md:`<h3>任命：管理员助理</h3><p>成员：<b>Codex-助理</b>（Codex CLI · GPT-5）</p><h3>职责</h3><ul><li>拆解任务、推荐分工与 <code>file_scope</code></li><li>交付预检与摘要</li></ul><h3>边界</h3><ul><li>受服务端权限等级（当前 L1）约束</li></ul>`},
 ];
 
-/* ---------------- state & helpers ---------------- */
+/* ---------------- state & theme ---------------- */
 const $ = s => document.querySelector(s);
 const M = id => members.find(m => m.id === id);
 let activeMember = null, activeChannel = "all", activeArt = "review", filter = "all", activeCmd = "draft", selectedTarget = "codex_a";
 
+function updateThemeBtn(){
+  const dark = document.documentElement.getAttribute("data-theme") === "dark";
+  $("#themeBtn").textContent = dark ? "☀" : "☾";
+  $("#themeBtn").title = dark ? "切换浅色模式" : "切换深色模式 (One Dark Pro Darker)";
+}
+
+$("#themeBtn").onclick = () => {
+  const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  localStorage.setItem("xinghe-theme", next);
+  updateThemeBtn();
+  if ($("#v-board").classList.contains("on")) drawLinks();
+  toast(next === "dark" ? "深色模式 · One Dark Pro Darker" : "浅色模式");
+};
+
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => {
+  if (!localStorage.getItem("xinghe-theme")) {
+    document.documentElement.setAttribute("data-theme", e.matches ? "dark" : "light");
+    updateThemeBtn();
+    if ($("#v-board").classList.contains("on")) drawLinks();
+  }
+});
+
+/* ---------------- render ---------------- */
 function renderTopAssistant(){
-  const m = M(currentAssistant);
-  const lv = assistantLevels.find(x => x.id === currentLevel);
-  $("#asstNameTop").textContent = m.name;
-  $("#asstLvlTop").textContent = `${lv.id} ${lv.id==="L1"?"辅助起草":lv.id==="L2"?"计划流转":"高自主"}`;
+  $("#asstNameTop").textContent = M(currentAssistant).name;
+  $("#asstLvlTop").textContent = currentLevel;
 }
 
 function renderAssistantPop(){
   const cands = members.filter(m => m.canBeAssistant);
   $("#asstMemberOpts").innerHTML = cands.map(m => `
     <button class="pop-opt ${currentAssistant===m.id?'on':''}" data-am="${m.id}">
-      <div class="avatar" style="background:${m.color};width:24px;height:24px;border-radius:6px;font-size:10px">${m.short}</div>
-      <div><b>${m.name}</b><small>${m.harness} · ${m.model} · 池：${m.pool}</small></div>
+      <div class="avatar">${m.short}</div>
+      <div><b>${m.name}</b><small>${m.harness} · ${m.model}</small></div>
     </button>`).join("");
   $("#asstLevelOpts").innerHTML = assistantLevels.map(lv => `
     <button class="pop-opt ${currentLevel===lv.id?'on':''}" data-lv="${lv.id}">
@@ -663,61 +1230,69 @@ function renderAssistantPop(){
     currentAssistant = b.dataset.am;
     if (activeCmd === "draft") selectedTarget = currentAssistant;
     renderTopAssistant(); renderAssistantPop(); renderMembers(); renderMentionChips();
-    toast(`已切换助理角色给 ${M(currentAssistant).name}（统一协议，无需改核心）`);
+    toast(`助理：${M(currentAssistant).name}`);
   });
   document.querySelectorAll("[data-lv]").forEach(b => b.onclick = () => {
     currentLevel = b.dataset.lv;
     renderTopAssistant(); renderAssistantPop();
-    toast(`助理权限等级已设为 ${currentLevel}`);
+    toast(`权限：${currentLevel}`);
   });
 }
 
 function renderMembers(){
-  $("#memberList").innerHTML = members.map(m => `
-    <div class="member ${activeMember===m.id?'active':''}" data-m="${m.id}">
-      <div class="avatar" style="background:${m.color}">${m.short}</div>
-      <span class="dot" style="background:${statusColor[m.status]}"></span>
-      <div class="m-body">
-        <div class="m-name">${m.name}<span class="role" style="background:#f2f3f5;color:${m.color}">${m.id===currentAssistant?'助理':(m.role==='管理员助理'?'待命':m.role)}</span></div>
-        <div class="m-meta">${m.model ? m.harness+' · '+m.model : '管理员（人）'}${m.pool?' · '+m.pool:''}</div>
-        <div class="m-act">${m.act}</div>
-        ${m.tags.length?`<div class="tags">${m.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`:''}
-      </div>
-    </div>`).join("");
+  $("#memberList").innerHTML = members.map(m => {
+    const st = statusMeta[m.status];
+    const roleLabel = m.id===currentAssistant ? "助理" : (m.role==="助理" ? "待命" : m.role);
+    let detailLine = "";
+    if (m.status === "working") {
+      const stats = [m.progress, m.duration].filter(Boolean).join(" · ");
+      detailLine = `<div class="m-line" title="${m.workSummary}"><span class="m-clip">${m.workSummary}</span>${stats ? `<span class="m-stat mono">${stats}</span>` : ""}</div>`;
+    } else if (m.deliverable) {
+      detailLine = `<div class="m-line" title="${m.deliverable}"><span class="m-clip">${m.deliverable}</span></div>`;
+    }
+    return `
+      <div class="member ${activeMember===m.id?'active':''} ${m.status==='offline'?'is-offline':''}" data-m="${m.id}">
+        <div class="avatar ${m.isMe?'me':''}">${m.short}</div>
+        <span class="dot" style="background:${st.dot}"></span>
+        <div class="m-body">
+          <div class="m-top"><span class="m-name">${m.label}</span><span class="role">${roleLabel}</span></div>
+          <div class="m-state-row"><span class="${st.cls}">${st.text}</span><span class="m-time mono">${m.updatedAt}</span></div>
+          ${detailLine}
+        </div>
+      </div>`;
+  }).join("");
   document.querySelectorAll(".member").forEach(el => el.onclick = () => {
     const id = el.dataset.m;
     activeMember = activeMember === id ? null : id;
     renderMembers(); renderBoard();
-    if ($("#v-feed").classList.contains("on") && id !== "me") {
-      setChannel(activeMember || "all");
-    } else if (activeMember) {
-      switchView("board");
-    }
+    if ($("#v-feed").classList.contains("on") && id !== "me") setChannel(activeMember || "all");
+    else if (activeMember) switchView("board");
   });
 }
 
 function renderQuota(){
-  $("#quotaList").innerHTML = pools.map(p => `
-    <div class="quota">
+  $("#quotaList").innerHTML = pools.map(p => {
+    const barColor = p.used >= 80 ? "var(--warn)" : "var(--primary)";
+    return `<div class="quota">
       <div class="q-head">${p.name}<small>${p.kind}</small></div>
-      <div class="bar"><i style="width:${p.used}%;background:${p.color}"></i></div>
+      <div class="bar"><i style="width:${p.used}%;background:${barColor}"></i></div>
       <div class="q-foot">
-        <span>已用 ${p.used}% · ${p.who}</span>
+        <span>${p.used}% · ${p.who}</span>
         <span>${p.left}<button class="q-cal" data-cal="${p.id}">校准</button></span>
       </div>
-    </div>`).join("");
+    </div>`;}).join("");
   document.querySelectorAll(".q-cal").forEach(b => b.onclick = () => {
     const p = pools.find(x => x.id === b.dataset.cal);
     p.used = Math.max(10, (p.used + 15) % 95);
     renderQuota();
-    toast(`已手动校准 ${p.name} 估算余量（当前已用 ${p.used}%）`);
+    toast(`${p.name} 已校准为 ${p.used}%`);
   });
 }
 
 function renderSubtasks(){
-  const ico = s => s.biz[1]==="ok" ? ["var(--ok)","✓"] : s.biz[1]==="warn" ? ["var(--warn)","!"] : ["var(--run)","●"];
+  const ico = s => s.biz[1]==="ok" ? ["var(--ok)","✓"] : s.biz[1]==="warn" ? ["var(--warn)","!"] : ["var(--text-muted)","·"];
   $("#subtaskList").innerHTML = subtasks.map(s => { const [c,t]=ico(s); const m=M(s.owner);
-    return `<div class="st" data-st="${s.id}"><span class="st-ico" style="background:${c}">${t}</span><span class="st-name">${s.name}</span><span class="st-who" style="color:${m.color}">${m.name}</span></div>`;}).join("");
+    return `<div class="st" data-st="${s.id}"><span class="st-ico" style="background:${c}">${t}</span><span class="st-name">${s.name}</span><span class="st-who">${m.name}</span></div>`;}).join("");
   document.querySelectorAll(".st").forEach(el => el.onclick = () => { switchView("board"); flashCard(el.dataset.st); });
 }
 
@@ -730,12 +1305,10 @@ function renderBoard(){
       const dim = activeMember && activeMember!==s.owner ? "dim" : "";
       return `<div class="card ${dim}" id="card-${s.id}">
         <div class="cid mono">${s.id}</div><h4>${s.name}</h4>
-        <div class="owner"><div class="avatar" style="background:${m.color}">${m.short}</div><b>${m.name}</b><span style="color:var(--mute)">${m.model?m.harness+' · '+m.model:'管理员'}</span></div>
-        <div class="states"><span class="pill ${s.biz[1]}">业务 · ${s.biz[0]}</span><span class="pill ${s.run[1]}">执行 · ${s.run[0]}</span></div>
-        ${s.note?`<div class="states"><span class="pill warn">⚠ ${s.note}</span></div>`:''}
-        <div class="scope mono">范围：${s.scope}</div>
-        <div class="why">💡 ${s.why}</div>
-        ${s.deps.length?`<div class="deps">经管理员转派自：${s.deps.join("、")}</div>`:''}
+        <div class="owner"><div class="avatar ${m.isMe?'me':''}">${m.short}</div><b>${m.name}</b><span>${m.model?m.harness+' · '+m.model:''}</span></div>
+        <div class="states"><span class="pill ${s.biz[1]}">业务 · ${s.biz[0]}</span><span class="pill ${s.run[1]}">执行 · ${s.run[0]}</span>${s.note?`<span class="pill warn">${s.note}</span>`:''}</div>
+        <div class="scope mono">${s.scope}</div>
+        <div class="why">${s.why}</div>
       </div>`;}).join("");
     lanes.appendChild(col);
   });
@@ -744,20 +1317,21 @@ function renderBoard(){
 
 function drawLinks(){
   const svg = $("#links"), box = $("#lanes").getBoundingClientRect();
-  let html = `<defs><marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#c3c7d1"/></marker></defs>`;
+  const stroke = getComputedStyle(document.documentElement).getPropertyValue("--link-stroke").trim();
+  let html = `<defs><marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="${stroke}"/></marker></defs>`;
   subtasks.forEach(s => s.deps.forEach(d => {
     const a = document.getElementById("card-"+d), b = document.getElementById("card-"+s.id);
     if(!a||!b) return;
     const ra=a.getBoundingClientRect(), rb=b.getBoundingClientRect();
     const x1=ra.right-box.left, y1=ra.top+ra.height/2-box.top, x2=rb.left-box.left-2, y2=rb.top+rb.height/2-box.top, mx=(x1+x2)/2;
-    html += `<path d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" fill="none" stroke="#c3c7d1" stroke-width="1.5" marker-end="url(#ar)"/>`;
+    html += `<path d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" fill="none" stroke="${stroke}" stroke-width="1" marker-end="url(#ar)"/>`;
   }));
   svg.innerHTML = html;
 }
 
 function flashCard(id){
   setTimeout(()=>{ const c=document.getElementById("card-"+id); if(!c) return;
-    c.classList.add("hl"); c.scrollIntoView({block:"center",behavior:"smooth"}); setTimeout(()=>c.classList.remove("hl"),1600);},50);
+    c.classList.add("hl"); c.scrollIntoView({block:"center",behavior:"smooth"}); setTimeout(()=>c.classList.remove("hl"),1500);},50);
 }
 
 function renderMentionChips(){
@@ -777,14 +1351,14 @@ function setChannel(ch){
   });
 }
 
-const icoStyle = {code:["#eef2ff","#4f46e5","</>"], doc:["#fff4ed","#d97757","MD"], review:["#e8f7ee","#16a34a","评"]};
+const icoLabel = { plan: "案", delivery: "交", review: "评", appt: "任" };
 function renderArts(){
   const list = arts.filter(a => filter==="all" || a.type===filter);
-  $("#artCount").textContent = `共 ${arts.length} 项`;
-  $("#artList").innerHTML = list.map(a => { const [bg,fg,t]=icoStyle[a.type]; const m=M(a.by);
+  $("#artCount").textContent = `${arts.length}`;
+  $("#artList").innerHTML = list.map(a => { const m=M(a.by);
     return `<div class="aitem ${activeArt===a.id?'on':''}" data-a="${a.id}">
-      <div class="aico" style="background:${bg};color:${fg}">${t}</div>
-      <div class="a-body"><div class="a-name">${a.name}</div><div class="a-meta"><span style="color:${m.color}">${m.name}</span> · ${a.time}</div></div>
+      <div class="aico">${icoLabel[a.type]}</div>
+      <div class="a-body"><div class="a-name">${a.name}</div><div class="a-meta">${m.name} · ${a.time}</div></div>
       <span class="pill ${a.state[1]}">${a.state[0]}</span></div>`;}).join("");
   document.querySelectorAll(".aitem").forEach(el => el.onclick = () => { activeArt = el.dataset.a; renderArts(); renderPreview(); });
 }
@@ -794,9 +1368,7 @@ function renderPreview(){
   $("#pTitle").textContent = a.name;
   $("#pState").innerHTML = `<span class="pill ${a.state[1]}">${a.state[0]}</span>`;
   $("#pRef").innerHTML = `<code>${a.ref}</code>`;
-  $("#pBody").innerHTML = a.code
-    ? `<div class="code mono">${a.code.map((l,i)=>`<div class="ln"><span>${i+1}</span><span>${l[0]||' '}</span></div>`).join("")}</div>`
-    : `<div class="md">${a.md}</div>`;
+  $("#pBody").innerHTML = `<div class="md">${a.md}</div>`;
 }
 
 function switchView(v){
@@ -806,7 +1378,7 @@ function switchView(v){
   if (v==="board") requestAnimationFrame(drawLinks);
 }
 
-function toast(t){ const el=$("#toast"); el.textContent=t; el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),2200); }
+function toast(t){ const el=$("#toast"); el.textContent=t; el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),1800); }
 
 function appendToFeed(html, ch){
   const wrap = document.createElement("div");
@@ -849,56 +1421,69 @@ function handleDecision(kind){
   if (!box || box.dataset.done) return;
   box.dataset.done = "1";
   if (kind === "return") {
-    box.innerHTML = `<div class="d-txt"><b>已拍板：</b>管理员确认退回 T-012.2 给 <b>Codex-实现</b> 返工（已发布退回记录并唤醒新 Run）。</div>`;
-    appendToFeed(`<div class="event"><div class="e-ico" style="background:var(--err-soft);color:var(--err)">↩</div><span><b>我</b> 向 <b style="color:var(--c-codex)">@Codex-实现</b> 下发 <b>[退回返工]</b>（附评审意见 <code>S-003</code>，保留历史版本）</span><span class="ref">${now}</span></div>`, "codex_w");
-    toast("已退回 Codex-实现 返工（新 Run，不覆盖 S-002）");
+    box.innerHTML = `<div class="d-txt">已退回 <b>Codex-实现</b> 返工</div>`;
+    appendToFeed(`<div class="event"><div class="e-ico" style="background:var(--err-soft);color:var(--err)">↩</div><span><b>我</b> 退回 T-012.2 → <b>@Codex-实现</b></span><span class="ref"><code>S-003</code> · ${now}</span></div>`, "codex_w");
+    toast("已退回 Codex-实现");
   } else {
-    box.innerHTML = `<div class="d-txt"><b>已拍板：</b>管理员记录原因并直接验收 <code>S-002</code>，任务进入已完成。</div>`;
-    appendToFeed(`<div class="event"><div class="e-ico" style="background:var(--ok-soft);color:var(--ok)">✓</div><span><b>我</b> 正式验收 <code>S-002</code>，T-012.2 状态更新为 <b>已完成 (accepted)</b></span><span class="ref">${now}</span></div>`, "codex_w");
-    toast("已正式验收通过并写入 Git");
+    box.innerHTML = `<div class="d-txt">已验收 <code>S-002</code></div>`;
+    appendToFeed(`<div class="event"><div class="e-ico" style="background:var(--ok-soft);color:var(--ok)">✓</div><span><b>我</b> 验收 <code>S-002</code> · T-012.2 已完成</span><span class="ref">${now}</span></div>`, "codex_w");
+    toast("已验收 S-002");
   }
 }
 $("#btnReturn").onclick = () => handleDecision("return");
 $("#btnAccept").onclick = () => handleDecision("accept");
 
-const cmdLabels = {draft:"找助理起草", assign:"分配", inquire_static:"询问进度(静态)", inquire_wake:"询问进度(唤醒)", supplement:"补充澄清", return:"退回返工", cancel:"取消/暂停"};
+const cmdLabels = {draft:"起草", assign:"分配", inquire:"查进度", supplement:"补充", return:"退回", cancel:"取消"};
+
+function wakeMember(id, promptText){
+  const target = M(id);
+  const now = new Date().toTimeString().slice(0,5);
+  appendToFeed(`
+    <div class="msg">
+      <div class="avatar">${target.short}</div>
+      <div class="msg-body">
+        <div class="msg-head"><b>${target.name}</b><span class="pill gray">汇报</span><span class="route">→ @我</span><time>${now}</time></div>
+        <div class="bubble"><span class="mention">@我</span> 当前进度：${target.act}${promptText ? `（${promptText}）` : ""}。</div>
+      </div>
+    </div>`, target.id);
+}
 
 $("#send").onclick = () => {
   const txt = $("#input").value.trim();
   const target = M(selectedTarget);
-  if (!txt && activeCmd !== "inquire_static") return;
-  const bodyText = txt || "请同步当前最新进度与状态。";
+  if (!txt && activeCmd !== "inquire") return;
+  const bodyText = txt || "同步当前进度";
   const now = new Date().toTimeString().slice(0,5);
   appendToFeed(`
     <div class="msg me">
-      <div class="avatar" style="background:var(--c-me)">我</div>
+      <div class="avatar me">我</div>
       <div class="msg-body">
-        <div class="msg-head"><b>我</b><span class="pill gray">管理员</span><span class="pill brand">${cmdLabels[activeCmd]}</span><span class="route">→ @${target.name}</span><time>${now}</time></div>
+        <div class="msg-head"><b>我</b><span class="pill gray">${cmdLabels[activeCmd]}</span><span class="route">→ @${target.name}</span><time>${now}</time></div>
         <div class="bubble"><span class="mention">@${target.name}</span> ${bodyText.replace(/</g,"&lt;")}</div>
       </div>
     </div>`, target.id);
   $("#input").value = "";
 
   setTimeout(() => {
-    if (activeCmd === "inquire_static") {
+    if (activeCmd === "inquire") {
       appendToFeed(`
         <div class="event">
-          <div class="e-ico" style="background:var(--ok-soft);color:var(--ok)">⚡</div>
-          <span><b>星河静态直答（未唤醒 CLI · 0 额度消耗）：</b>${target.name} 当前状态「${target.act}」，最近无异常进程。</span>
-          <span class="ref">读自文件 + Run 表</span>
+          <div class="e-ico" style="background:var(--neutral-soft);color:var(--text-sub)">•</div>
+          <span><b>${target.name}</b>：${target.act}</span>
+          <span class="ref"><button class="btn sm" onclick="wakeMember('${target.id}','');this.disabled=true">唤醒询问</button></span>
         </div>`, target.id);
     } else if (activeCmd === "draft") {
       const am = M(currentAssistant);
       appendToFeed(`
         <div class="msg asst">
-          <div class="avatar" style="background:${am.color}">${am.short}</div>
+          <div class="avatar">${am.short}</div>
           <div class="msg-body">
-            <div class="msg-head"><b>${am.name}</b><span class="pill ok">助理 · ${currentLevel}</span><span class="route">→ @我</span><time>${now}</time></div>
-            <div class="bubble">收到。已按你的要求起草任务变更与分工草稿${currentLevel==="L1"?"（L1 权限下需你确认才发布）":`（可按 ${currentLevel} 规则流转）`}：
-              <div class="plan-foot" style="margin-top:8px;border:1px solid var(--line);border-radius:7px">
-                <span class="hint">Action Draft · 未发布</span>
-                <button class="btn sm" onclick="toast('已打开草稿编辑')">修改</button>
-                <button class="btn sm primary" onclick="toast('已确认发布至 Git 并按星型规则下发')">确认发布</button>
+            <div class="msg-head"><b>${am.name}</b><span class="pill warn">待确认 · ${currentLevel}</span><span class="route">→ @我</span><time>${now}</time></div>
+            <div class="bubble">已生成任务变更草稿：
+              <div class="plan-foot" style="margin-top:8px;border-radius:var(--r-sm)">
+                <span class="meta">Draft</span>
+                <button class="btn sm" onclick="toast('编辑草稿')">编辑</button>
+                <button class="btn sm primary" onclick="toast('已发布')">确认发布</button>
               </div>
             </div>
           </div>
@@ -906,21 +1491,21 @@ $("#send").onclick = () => {
     } else {
       appendToFeed(`
         <div class="msg">
-          <div class="avatar" style="background:${target.color}">${target.short}</div>
+          <div class="avatar">${target.short}</div>
           <div class="msg-body">
-            <div class="msg-head"><b>${target.name}</b><span class="pill gray">${target.role}</span><span class="pill run">汇报</span><span class="route">→ @我</span><time>${now}</time></div>
-            <div class="bubble"><span class="mention">@管理员</span> 已收到 <b>[${cmdLabels[activeCmd]}]</b> 指令（仅读取你提供的固定文件与一对一往来），开始处理，完成后通过正式交付向你回报。</div>
+            <div class="msg-head"><b>${target.name}</b><span class="pill gray">汇报</span><span class="route">→ @我</span><time>${now}</time></div>
+            <div class="bubble"><span class="mention">@我</span> 已接收 <b>${cmdLabels[activeCmd]}</b>，处理完成后正式交付。</div>
           </div>
         </div>`, target.id);
     }
-  }, 420);
+  }, 360);
 };
 
 $("#input").addEventListener("keydown", e => { if (e.key==="Enter" && (e.ctrlKey||e.metaKey)) $("#send").click(); });
 window.addEventListener("resize", () => { if ($("#v-board").classList.contains("on")) drawLinks(); });
 
 /* ---------------- init ---------------- */
-renderTopAssistant(); renderAssistantPop(); renderMembers(); renderQuota(); renderSubtasks(); renderBoard(); renderMentionChips(); renderArts(); renderPreview();
+updateThemeBtn(); renderTopAssistant(); renderAssistantPop(); renderMembers(); renderQuota(); renderSubtasks(); renderBoard(); renderMentionChips(); renderArts(); renderPreview();
 </script>
 </body>
 </html>
