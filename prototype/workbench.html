@@ -38,6 +38,10 @@
     --sep: #181a1f;
     --hairline: rgba(255, 255, 255, 0.06);
     --hairline-strong: rgba(255, 255, 255, 0.11);
+    --input-border: rgba(255, 255, 255, 0.1);
+    --search-border: transparent;
+    --card-shadow: none;
+    --composer-shadow: none;
     --focus: #61afef;
 
     --text-bright: #e6e9ef;
@@ -87,68 +91,72 @@
     --toast-fg: #f0f0f0;
   }
 
-  /* Light Mode — matching One Light / VS Code Light (surface-first) */
+  /* Light Mode — refined VS Code Light Modern / Linear airy slate */
   :root[data-theme="light"] {
     color-scheme: light;
     --bg-editor: #ffffff;
-    --bg-sidebar: #f3f4f6;
-    --bg-input: #f5f6f8;
-    --bg-surface: #f5f6f9;
-    --bg-elevated: #eceef3;
-    --bg-hover: #e7e9ee;
-    --bg-active: #dde2ec;
-    --bg-code: #f5f6f8;
+    --bg-sidebar: #f7f8fa;
+    --bg-input: #ffffff;
+    --bg-surface: #f3f5f8;
+    --bg-elevated: #e9edf3;
+    --bg-hover: #eceff4;
+    --bg-active: #e2e8f2;
+    --bg-code: #f0f2f6;
 
-    --sep: #e4e6eb;
-    --hairline: rgba(0, 0, 0, 0.06);
-    --hairline-strong: rgba(0, 0, 0, 0.12);
-    --focus: #4078f2;
+    --sep: #e5e8ef;
+    --hairline: rgba(15, 23, 42, 0.06);
+    --hairline-strong: rgba(15, 23, 42, 0.12);
+    --input-border: rgba(15, 23, 42, 0.14);
+    --search-border: rgba(15, 23, 42, 0.1);
+    --card-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    --composer-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    --focus: #2563eb;
 
-    --text-bright: #111418;
-    --text: #1f2328;
-    --text-body: #383a42;
-    --text-sub: #606773;
-    --text-muted: #8b929e;
-    --text-placeholder: #9aa1ad;
-    --text-line-num: #a0a7b4;
+    --text-bright: #0f172a;
+    --text: #1e293b;
+    --text-body: #334155;
+    --text-sub: #526072;
+    --text-muted: #768396;
+    --text-placeholder: #8d99ab;
+    --text-line-num: #94a3b8;
 
-    --btn-bg: #e7e9ee;
-    --btn-hover: #dcdfe7;
-    --btn-fg: #24292f;
+    --btn-bg: #ebeff5;
+    --btn-hover: #dfe5ef;
+    --btn-fg: #1e293b;
 
-    --primary: #3b6fd8;
-    --primary-hover: #2f60c4;
+    --primary: #2b63d9;
+    --primary-hover: #2152be;
     --primary-fg: #ffffff;
-    --accent: #4078f2;
-    --accent-soft: rgba(64, 120, 242, 0.1);
+    --accent: #2563eb;
+    --accent-soft: rgba(37, 99, 235, 0.1);
 
-    --ok: #38863a;
-    --ok-soft: rgba(80, 161, 79, 0.12);
-    --warn: #ad7000;
-    --warn-soft: rgba(193, 132, 1, 0.12);
-    --err: #cf3a30;
-    --err-soft: rgba(228, 86, 73, 0.11);
-    --run: #2f6fd6;
-    --run-soft: rgba(64, 120, 242, 0.11);
-    --neutral-soft: rgba(92, 99, 112, 0.09);
-    --tag-bg: rgba(0, 0, 0, 0.045);
+    --ok: #1f7a44;
+    --ok-soft: rgba(31, 122, 68, 0.11);
+    --warn: #b4690e;
+    --warn-soft: rgba(180, 105, 14, 0.12);
+    --err: #c9372c;
+    --err-soft: rgba(201, 55, 44, 0.11);
+    --run: #2563eb;
+    --run-soft: rgba(37, 99, 235, 0.11);
+    --neutral-soft: rgba(15, 23, 42, 0.06);
+    --tag-bg: rgba(15, 23, 42, 0.05);
 
-    --bubble-me-bg: #eef2fb;
+    --bubble-me-bg: #eef3fe;
 
-    --avatar-bg: #e2e5ec;
-    --avatar-fg: #24292f;
-    --avatar-me-bg: #3b6fd8;
+    --avatar-bg: #e5e9f0;
+    --avatar-fg: #334155;
+    --avatar-me-bg: #2b63d9;
     --avatar-me-fg: #ffffff;
-    --ico-bg: rgba(92, 99, 112, 0.09);
-    --ico-fg: #606773;
+    --ico-bg: #eaedf3;
+    --ico-fg: #475569;
     --dot-fg: #ffffff;
 
-    --link-stroke: rgba(92, 99, 112, 0.26);
-    --scroll-thumb: rgba(139, 146, 158, 0.34);
-    --scroll-hover: rgba(139, 146, 158, 0.54);
-    --shadow-pop: 0 10px 28px rgba(15, 23, 42, 0.13);
-    --toast-bg: #23272e;
-    --toast-fg: #f0f0f0;
+    --link-stroke: rgba(71, 85, 105, 0.28);
+    --scroll-thumb: rgba(15, 23, 42, 0.16);
+    --scroll-hover: rgba(15, 23, 42, 0.28);
+    --shadow-pop: 0 10px 28px rgba(15, 23, 42, 0.12);
+    --toast-bg: #1e293b;
+    --toast-fg: #f8fafc;
   }
 
   /* ================= Reset & Base ================= */
@@ -229,33 +237,10 @@
   .pill.gray { background: var(--neutral-soft); color: var(--text-sub); }
   .pill.brand { background: var(--accent-soft); color: var(--accent); }
 
-  .asst-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 26px;
-    padding: 0 9px;
-    border-radius: var(--r-sm);
-    background: var(--bg-surface);
-    color: var(--text);
-    font-size: 12px;
-  }
-  .asst-badge:hover { background: var(--bg-hover); }
-  .asst-badge b { font-weight: 600; }
-  .asst-badge .lvl {
-    background: var(--accent-soft);
-    color: var(--accent);
-    padding: 0 5px;
-    border-radius: var(--r-xs);
-    font-size: 10.5px;
-    font-weight: 600;
-    line-height: 16px;
-  }
-
   .search {
     width: 190px;
     height: 26px;
-    border: 1px solid transparent;
+    border: 1px solid var(--search-border);
     border-radius: var(--r-sm);
     padding: 0 8px;
     display: flex;
@@ -318,12 +303,12 @@
     color: var(--avatar-me-fg);
   }
 
-  /* ================= Assistant Popover (VS Code Menu Style) ================= */
+  /* ================= Assistant Popover (Anchored to Left Member List) ================= */
   .popover {
     position: fixed;
-    top: 46px;
-    right: 130px;
-    width: 280px;
+    top: 80px;
+    left: 274px;
+    width: 264px;
     background: var(--bg-sidebar);
     border: 1px solid var(--hairline-strong);
     border-radius: var(--r-md);
@@ -399,7 +384,7 @@
   }
   .member:hover { background: var(--bg-hover); }
   .member.active { background: var(--bg-active); }
-  .member.is-offline { opacity: 0.68; }
+  .member.is-offline { opacity: 0.78; }
   .member .avatar { width: 26px; height: 26px; font-size: 10.5px; margin-top: 1px; }
   .member .dot {
     position: absolute;
@@ -425,6 +410,15 @@
     color: var(--text-sub);
     flex: none;
   }
+  .role.asst-trigger {
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .role.asst-trigger:hover { filter: brightness(1.12); }
   .m-state-row {
     display: flex;
     align-items: center;
@@ -466,6 +460,7 @@
     border-radius: var(--r-sm);
     margin: 0 3px 6px;
     background: var(--bg-editor);
+    box-shadow: var(--card-shadow);
   }
   .q-head { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 12px; color: var(--text); }
   .q-head small { font-weight: 400; color: var(--text-muted); font-size: 11px; }
@@ -638,11 +633,12 @@
     position: relative;
     max-width: 780px;
     margin: 0 auto;
-    border: 1px solid var(--hairline-strong);
+    border: 1px solid var(--input-border);
     border-radius: var(--r-lg);
     background: var(--bg-input);
+    box-shadow: var(--composer-shadow);
     padding: 8px 10px 7px;
-    transition: border-color .12s;
+    transition: border-color .12s, box-shadow .12s;
   }
   .composer-box:focus-within { border-color: var(--focus); }
 
@@ -816,12 +812,6 @@
   <div class="crumb">任务 / <b>登录模块重构</b></div>
   <span class="pill warn">待决策</span>
   <div class="spacer"></div>
-  <button class="asst-badge" id="asstBtn">
-    <span>助理</span>
-    <b id="asstNameTop">Codex-助理</b>
-    <span class="lvl" id="asstLvlTop">L1</span>
-    <span style="color:var(--text-muted)">▾</span>
-  </button>
   <div class="search">
     <span>⌕</span>
     <input type="text" placeholder="搜索任务、文件、成员…" aria-label="搜索">
@@ -831,13 +821,13 @@
   <div class="avatar me" title="管理员">我</div>
 </header>
 
-<!-- Assistant Switch & Permission Popover -->
+<!-- Assistant & Permission Popover -->
 <div class="popover" id="asstPop">
-  <div class="pop-title">助理配置 <button class="btn ghost sm" id="closePop">✕</button></div>
-  <div class="pop-lbl">助理成员</div>
-  <div id="asstMemberOpts"></div>
+  <div class="pop-title">助理权限 <button class="btn ghost sm" id="closePop">✕</button></div>
   <div class="pop-lbl">权限等级</div>
   <div id="asstLevelOpts"></div>
+  <div class="pop-lbl">切换助理成员</div>
+  <div id="asstMemberOpts"></div>
 </div>
 
 <div class="main">
@@ -1126,9 +1116,12 @@ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e =
 });
 
 /* ---------------- render ---------------- */
-function renderTopAssistant(){
-  $("#asstNameTop").textContent = M(currentAssistant).name;
-  $("#asstLvlTop").textContent = currentLevel;
+function openAssistantPop(anchor){
+  const pop = $("#asstPop");
+  const r = anchor.getBoundingClientRect();
+  pop.style.top = Math.min(r.top, window.innerHeight - 340) + "px";
+  pop.style.left = (r.right + 10) + "px";
+  pop.classList.toggle("open");
 }
 
 function renderAssistantPop(){
@@ -1136,7 +1129,7 @@ function renderAssistantPop(){
   $("#asstMemberOpts").innerHTML = cands.map(m => `
     <button class="pop-opt ${currentAssistant===m.id?'on':''}" data-am="${m.id}">
       <div class="avatar">${m.short}</div>
-      <div><b>${m.name}</b><small>${m.harness} · ${m.model}</small></div>
+      <div><b>${m.label}</b><small>${m.name}</small></div>
     </button>`).join("");
   $("#asstLevelOpts").innerHTML = assistantLevels.map(lv => `
     <button class="pop-opt ${currentLevel===lv.id?'on':''}" data-lv="${lv.id}">
@@ -1144,12 +1137,12 @@ function renderAssistantPop(){
     </button>`).join("");
   document.querySelectorAll("[data-am]").forEach(b => b.onclick = () => {
     currentAssistant = b.dataset.am;
-    renderTopAssistant(); renderAssistantPop(); renderMembers();
+    renderAssistantPop(); renderMembers();
     toast(`助理：${M(currentAssistant).name}`);
   });
   document.querySelectorAll("[data-lv]").forEach(b => b.onclick = () => {
     currentLevel = b.dataset.lv;
-    renderTopAssistant(); renderAssistantPop();
+    renderAssistantPop(); renderMembers();
     toast(`权限：${currentLevel}`);
   });
 }
@@ -1157,7 +1150,10 @@ function renderAssistantPop(){
 function renderMembers(){
   $("#memberList").innerHTML = members.map(m => {
     const st = statusMeta[m.status];
-    const roleLabel = m.id===currentAssistant ? "助理" : (m.role==="助理" ? "待命" : m.role);
+    const isAsst = m.id === currentAssistant;
+    const roleHtml = isAsst
+      ? `<button class="role asst-trigger" id="asstTrigger" title="修改权限等级与助理">助理 · ${currentLevel} ▾</button>`
+      : `<span class="role">${m.role==="助理" ? "待命" : m.role}</span>`;
     let detailLine = "";
     if (m.status === "working") {
       const stats = [m.progress, m.duration].filter(Boolean).join(" · ");
@@ -1170,12 +1166,14 @@ function renderMembers(){
         <div class="avatar ${m.isMe?'me':''}">${m.short}</div>
         <span class="dot" style="background:${st.dot}"></span>
         <div class="m-body">
-          <div class="m-top"><span class="m-name">${m.label}</span><span class="role">${roleLabel}</span></div>
+          <div class="m-top"><span class="m-name">${m.label}</span>${roleHtml}</div>
           <div class="m-state-row"><span class="${st.cls}">${st.text}</span><span class="m-time mono">${m.updatedAt}</span></div>
           ${detailLine}
         </div>
       </div>`;
   }).join("");
+  const trig = $("#asstTrigger");
+  if (trig) trig.onclick = e => { e.stopPropagation(); openAssistantPop(trig); };
   document.querySelectorAll(".member").forEach(el => el.onclick = () => {
     const id = el.dataset.m;
     activeMember = activeMember === id ? null : id;
@@ -1361,10 +1359,10 @@ function appendToFeed(html, ch){
 }
 
 /* ---------------- events ---------------- */
-$("#asstBtn").onclick = () => $("#asstPop").classList.toggle("open");
 $("#closePop").onclick = () => $("#asstPop").classList.remove("open");
 document.addEventListener("click", e => {
-  if (!$("#asstPop").contains(e.target) && !$("#asstBtn").contains(e.target)) $("#asstPop").classList.remove("open");
+  const trig = $("#asstTrigger");
+  if (!$("#asstPop").contains(e.target) && (!trig || !trig.contains(e.target))) $("#asstPop").classList.remove("open");
 });
 
 document.querySelectorAll("#tabs button").forEach(b => b.onclick = () => switchView(b.dataset.v));
@@ -1558,7 +1556,7 @@ $("#send").onclick = () => {
 window.addEventListener("resize", () => { if ($("#v-board").classList.contains("on")) drawLinks(); });
 
 /* ---------------- init ---------------- */
-updateThemeBtn(); renderTopAssistant(); renderAssistantPop(); renderMembers(); renderQuota(); renderSubtasks(); renderBoard(); renderArts(); renderDocView();
+updateThemeBtn(); renderAssistantPop(); renderMembers(); renderQuota(); renderSubtasks(); renderBoard(); renderArts(); renderDocView();
 </script>
 </body>
 </html>
