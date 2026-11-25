@@ -15,6 +15,7 @@ xinghe/
 ├── scripts/      # 本地开发与 P0 双 CLI 环境验证脚本
 ├── docs/         # 需求文档（v0.5）与系统概要设计（v0.4）
 ├── prototype/    # 交互式 HTML 工作台原型
+├── AGENTS.md     # 开发者与多 Agent 协作、代码、Web UI 与提交规范
 └── .xinghe/      # [gitignored] 本地运行期数据（Git 正式文档库、SQLite、草稿、产物与日志）
 ```
 
@@ -36,3 +37,4 @@ cd web && npm install && npm run dev
 - 需求文档：[docs/星河-初版需求文档-v0.1.md](docs/星河-初版需求文档-v0.1.md)（正文 v0.5）
 - 概要设计：[docs/星河-系统概要设计-v0.1.md](docs/星河-系统概要设计-v0.1.md)（正文 v0.4）
 - 工作台原型：[prototype/workbench.html](prototype/workbench.html)
+- 协作与开发规范：[AGENTS.md](AGENTS.md)
