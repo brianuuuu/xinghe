@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="../web/public/logo.svg">
 <title>星河 · 工作台</title>
 <script>
   (function () {
@@ -203,17 +204,11 @@
     color: var(--text-bright);
     margin-right: 4px;
   }
-  .logo i {
+  .logo img {
     width: 20px;
     height: 20px;
+    display: block;
     border-radius: var(--r-sm);
-    background: var(--primary);
-    color: var(--primary-fg);
-    display: grid;
-    place-items: center;
-    font-style: normal;
-    font-size: 11px;
-    font-weight: 600;
   }
   .crumb { color: var(--text-sub); font-size: 12.5px; }
   .crumb b { color: var(--text); font-weight: 600; }
@@ -808,7 +803,7 @@
 
 <!-- ================= TOP BAR ================= -->
 <header class="topbar">
-  <div class="logo"><i>星</i>星河</div>
+  <div class="logo"><img src="../web/public/logo.svg" alt="星河">星河</div>
   <div class="crumb">任务 / <b>登录模块重构</b></div>
   <span class="pill warn">待决策</span>
   <div class="spacer"></div>
@@ -818,7 +813,7 @@
   </div>
   <button class="btn" onclick="toast('已新建任务草稿')">＋ 新建</button>
   <button class="btn icon" id="themeBtn" aria-label="切换主题"></button>
-  <div class="avatar me" title="管理员">我</div>
+  <div class="avatar me" title="admin">AD</div>
 </header>
 
 <!-- Assistant & Permission Popover -->
@@ -886,7 +881,7 @@
                     <tr><td>T-012.1 重构方案</td><td><b>Claude-Opus</b></td><td class="mono">docs/方案</td><td class="why">架构设计强 · Claude Max 充足</td></tr>
                     <tr><td>T-012.2 token 刷新</td><td><b>Codex-实现</b></td><td class="mono">auth/session.ts, lock.ts, *.test.ts</td><td class="why">多文件实现稳 · 与评审异构</td></tr>
                     <tr><td>T-012.3 代码评审</td><td><b>Claude-Sonnet</b></td><td class="mono">只读 S-002</td><td class="why">异构模型交叉检查</td></tr>
-                    <tr><td>T-012.4 验收合并</td><td><b>我</b></td><td class="mono">—</td><td class="why">最终验收</td></tr>
+                    <tr><td>T-012.4 验收合并</td><td><b>admin</b></td><td class="mono">—</td><td class="why">最终验收</td></tr>
                   </tbody>
                 </table>
                 <div class="plan-foot">
@@ -1045,7 +1040,7 @@ const members = [
   {id:"codex_w", name:"Codex-实现",    label:"Codex.GPT-5",   short:"CW", isMe:false, harness:"Codex CLI",   model:"GPT-5",  role:"实现",   status:"working", updatedAt:"14:51", workSummary:"修复 lock.acquire 超时保护与并发测试", progress:"65%", duration:"04:18", deliverable:"实现与验证报告.md (S-002)", act:"修复 lock.acquire 超时保护（65%）"},
   {id:"opus",    name:"Claude-Opus",   label:"Claude.Opus",   short:"CO", isMe:false, harness:"Claude Code", model:"Opus",   role:"架构",   status:"offline", updatedAt:"14:18", deliverable:"重构方案.md (S-001)", act:"已完成重构方案.md", canBeAssistant:true},
   {id:"sonnet",  name:"Claude-Sonnet", label:"Claude.Sonnet", short:"CS", isMe:false, harness:"Claude Code", model:"Sonnet", role:"评审",   status:"idle",    updatedAt:"14:49", deliverable:"评审意见 R1.md (S-003)、风险核对清单.md", act:"已交付评审意见 R1.md", canBeAssistant:true},
-  {id:"me",      name:"我",            label:"我",            short:"我", isMe:true,  harness:"管理员",      model:"",       role:"管理员", status:"idle",    updatedAt:"14:50", deliverable:"", act:"待决策 1"},
+  {id:"me",      name:"admin",         label:"admin",         short:"AD", isMe:true,  harness:"管理员",      model:"",       role:"管理员", status:"idle",    updatedAt:"14:50", deliverable:"", act:"待决策 1"},
 ];
 const statusMeta = {
   working: { text:"工作中", cls:"m-st-work", dot:"var(--run)" },
