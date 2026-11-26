@@ -1,10 +1,61 @@
-# 星河（Xinghe）· 多 Agent 协作工作台
+<p align="center">
+  <img src="web/public/logo.svg" alt="星河 Logo" width="72" height="72" />
+</p>
+
+<h1 align="center">星河 Xinghe</h1>
+
+<p align="center"><strong>多 Agent 协作工作台</strong></p>
+
+<p align="center">
+  跨 Harness 协同，以文档组织分工、交接与验收。
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/stage-prototype-4d78cc?style=flat" alt="阶段：原型开发" />
+  <img src="https://img.shields.io/badge/Go-00ADD8?style=flat&amp;logo=go&amp;logoColor=white" alt="Go" />
+  <img src="https://img.shields.io/badge/React%20%2B%20TypeScript-3178C6?style=flat&amp;logo=react&amp;logoColor=white" alt="React + TypeScript" />
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--2.0-64748B?style=flat" alt="License: GPL-2.0" /></a>
+</p>
+
+<p align="center">
+  <a href="#产品简介">产品简介</a> ·
+  <a href="#为什么需要星河">为什么需要星河</a> ·
+  <a href="#快速开始">快速开始</a> ·
+  <a href="#文档与原型">文档与原型</a>
+</p>
+
+<p align="center">
+  <sub>当前为原型与工程骨架阶段 · <a href="prototype/workbench.html">查看工作台原型（HTML）</a></sub>
+</p>
+
+---
 
 ## 产品简介
 
-**跨 Harness 协同，以文档组织分工、交接与验收。**
+星河面向需要同时组织 Codex CLI、Claude Code 等自主 Agent 的个人开发者与创作者，围绕以下方向设计：
 
-面向需要同时组织多个自主 Agent（如 Codex CLI、Claude Code）的个人开发者与创作者，围绕**能力分工**、**共享额度池**、**星型沟通（禁止成员互 `@`）**与**有版本的正式文件流转**构建可控协作秩序。
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>能力分工</h3>
+      <p>根据任务要求、Agent 的能力和成本安排分工，让各个 Agent 独立完成自己负责的部分。</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>共享额度池</h3>
+      <p>统一管理多个 Agent 共用的账号或订阅额度，让任务安排兼顾能力与可用额度。</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>集中协调</h3>
+      <p>由管理员分配任务、处理分歧和验收成果，成员之间不直接互 @。</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>文档交接</h3>
+      <p>以有版本的任命书、任务文件和报告承接工作，明确输入、交付与验收依据。</p>
+    </td>
+  </tr>
+</table>
 
 ## 为什么需要星河
 
@@ -44,7 +95,11 @@ xinghe/
 
 ## 文档与原型
 
-- 需求文档：[docs/星河-初版需求文档-v0.1.md](docs/星河-初版需求文档-v0.1.md)（正文 v0.5）
-- 概要设计：[docs/星河-系统概要设计-v0.1.md](docs/星河-系统概要设计-v0.1.md)（正文 v0.4）
-- 工作台原型：[prototype/workbench.html](prototype/workbench.html)
-- 协作与开发规范：[AGENTS.md](AGENTS.md)
+| 入口 | 内容 |
+| --- | --- |
+| [需求文档](docs/星河-初版需求文档-v0.1.md) | 产品定位、业务概念与功能范围 · 正文 v0.5 |
+| [概要设计](docs/星河-系统概要设计-v0.1.md) | 模块划分、数据存储与运行机制 · 正文 v0.4 |
+| [工作台原型](prototype/workbench.html) | 下载仓库后用浏览器打开，体验交互与主题切换 |
+| [协作与开发规范](AGENTS.md) | 工程约定、界面规范与提交规则 |
+
+<p align="center"><sub>开源许可证：<a href="LICENSE">GPL-2.0</a></sub></p>
