@@ -11,10 +11,10 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/stage-prototype-4d78cc?style=flat" alt="阶段：原型开发" />
-  <img src="https://img.shields.io/badge/Go-00ADD8?style=flat&amp;logo=go&amp;logoColor=white" alt="Go" />
-  <img src="https://img.shields.io/badge/React%20%2B%20TypeScript-3178C6?style=flat&amp;logo=react&amp;logoColor=white" alt="React + TypeScript" />
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--2.0-64748B?style=flat" alt="License: GPL-2.0" /></a>
+  <kbd>原型开发</kbd> &nbsp;
+  <kbd>Go</kbd> &nbsp;
+  <kbd>React + TypeScript</kbd> &nbsp;
+  <a href="LICENSE"><kbd>GPL-2.0</kbd></a>
 </p>
 
 <p align="center">
